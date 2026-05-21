@@ -8,6 +8,11 @@ Figma draft:
 
 https://www.figma.com/design/0mCQSOVBhqLOSH6YVrLeZU
 
+Figma status:
+
+- The Figma draft is the current visual source of truth.
+- Layout and text wrapping have been manually adjusted in Figma to avoid awkward line breaks and improve visual balance.
+
 ## Goal
 
 Design a focused B2B SaaS landing page for Hot Post Analyst before writing React code.
