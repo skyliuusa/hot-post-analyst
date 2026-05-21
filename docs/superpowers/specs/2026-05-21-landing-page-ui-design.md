@@ -2,15 +2,15 @@
 
 Date: 2026-05-21
 
-Status: Draft for review. Implementation is intentionally paused.
+Status: Draft for review. Implementation is intentionally paused. The next design step is Figma, not React implementation.
 
 ## Goal
 
 Design a focused B2B SaaS landing page for Hot Post Analyst before writing React code.
 
-The landing page should communicate one product promise:
+The landing page should communicate one product promise. Final landing copy should be Chinese only:
 
-> Pick the post worth recreating.
+> 选出最值得复刻的那条热帖。
 
 This is narrower and stronger than "analyze viral posts." The product should feel like a quiet decision workspace for creators and content operators who save too many viral posts but need to decide what to draft next.
 
@@ -20,7 +20,7 @@ Creators and small content teams collect viral posts, screenshots, comments, and
 
 Primary user question:
 
-> Which saved post should I recreate this week, and what should I do next?
+> 这一周我应该复刻哪条热帖，下一步该做什么？
 
 ## Design Principles
 
@@ -52,8 +52,9 @@ The page should not lead with a centered hero, gradient text, many CTAs, logo so
 Visible items:
 
 - Brand mark and `Hot Post Analyst`.
-- Optional status text such as `Private workspace`.
+- Status text such as `私有工作区`.
 - Icon-only search/settings/sync controls.
+- One restrained visible CTA in the top-right, e.g. `开始使用`.
 
 Hidden or de-emphasized:
 
@@ -67,21 +68,27 @@ The top bar should feel like a product shell, not a marketing nav.
 
 Preferred headline:
 
-> Pick the post worth recreating.
+> 选出最值得复刻的那条热帖。
 
 Supporting copy:
 
-> A quiet workspace that turns saved viral posts into the next draft.
+> 把收藏的爆款内容，变成下一篇能发布的草稿。
 
 Trust line:
 
-> 14,820 posts classified across hooks, covers, demand signals, and repeatability. Built for private, local-first creator research.
+> 已分类 14,820 条内容信号，覆盖标题钩子、封面、评论需求和可复刻性。数据保留在你的本地工作区。
 
 CTA treatment:
 
 - Avoid large competing buttons in the main visual direction.
-- If a CTA is needed, use one restrained primary action only.
-- A screenshot-led interaction can replace the standard hero button.
+- Keep one restrained visible CTA in the top bar only.
+- Do not place multiple large hero buttons in the body.
+- The product screenshot action should reinforce the CTA but not create a second competing marketing button.
+
+Definition:
+
+- A visible CTA is an action the user can see without opening a menu or scrolling, such as `开始使用`.
+- For this design, the visible CTA should be small, top-right, and visually subordinate to the product screenshot.
 
 ## Product Screenshot Concept
 
@@ -96,10 +103,10 @@ Visible structure:
 
 Visible content:
 
-- Recommendation score, e.g. `Score 86`.
-- Post summary, e.g. `Checklist cover with concrete proof`.
-- Action headline, e.g. `Draft this one.`
-- Next step, e.g. `Write three title variants`.
+- Recommendation score, e.g. `评分 86`.
+- Post summary, e.g. `带具体证据的清单封面`.
+- Action headline, e.g. `先写这条`.
+- Next step, e.g. `写 3 个标题版本`.
 
 The screenshot should avoid:
 
@@ -115,10 +122,10 @@ The screenshot should avoid:
 
 1. Hero: core promise and product screenshot.
 2. Workflow: one line per stage, not a feature dump.
-   - Save
-   - Rank
-   - Draft
-   - Review
+   - 收藏
+   - 排序
+   - 起稿
+   - 复盘
 3. Proof: short operational proof with organic numbers.
 4. Focused feature reveal: show what the hidden sidebar/top bar contains.
 5. Final CTA: one decision-oriented call to action.
@@ -127,16 +134,16 @@ The screenshot should avoid:
 
 Sidebar icon groups:
 
-- Today
-- Saved posts
-- Drafts
-- Reviews
+- 今日
+- 收藏
+- 草稿
+- 复盘
 
 Top bar controls:
 
-- Search
-- Sync
-- Settings
+- 搜索
+- 同步
+- 设置
 
 These controls should visually imply capability without competing with the main decision.
 
@@ -212,18 +219,19 @@ Since the landing page should be calm, motion should be subtle:
 
 Before building React + Tailwind:
 
-- Confirm final headline and supporting copy.
-- Confirm whether there is one visible CTA or screenshot-led CTA only.
-- Create a final desktop frame.
-- Create a mobile frame.
+- Final headline and supporting copy are Chinese only.
+- Use one restrained visible CTA in the top bar; avoid body CTA clutter.
+- Create a final desktop frame in Figma.
+- Create a mobile frame in Figma.
 - Define design tokens for color, type, radius, border, and shadow.
-- Decide whether to create the UI in Figma first or continue with browser mockups.
+- Use Figma as the source of truth before implementation.
 
 ## Recommended Tooling
 
 Primary recommendation:
 
 - Use Figma for final UI frames, component states, and developer handoff.
+- Build the Figma design before any React + Tailwind implementation.
 
 Fast iteration:
 
@@ -240,9 +248,8 @@ Quality checks:
 
 ## Open Decisions
 
-1. Should the first viewport include a visible CTA button, or should the product screenshot action be the primary CTA cue?
-2. Should the final visual design be produced in Figma before implementation?
-3. Should the landing page use English copy only, Chinese copy only, or bilingual copy?
+1. What should the exact Chinese CTA label be: `开始使用`, `创建复刻清单`, or another phrase?
+2. Should the Figma file include only landing page frames, or also a small product UI component kit?
 
 ## Out Of Scope For This Design Phase
 
@@ -257,6 +264,6 @@ Quality checks:
 
 Finalize the first viewport around this sentence:
 
-> Pick the post worth recreating.
+> 选出最值得复刻的那条热帖。
 
-Then create one high-fidelity desktop frame and one mobile frame. Once those are approved, implementation can proceed with much less rework.
+Then create one high-fidelity desktop frame and one mobile frame in Figma. Once those are approved, implementation can proceed with much less rework.
