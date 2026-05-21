@@ -21,6 +21,10 @@ The landing page should communicate one product promise. Final landing copy shou
 
 > 选出最值得复刻的那条热帖。
 
+Repo prototype headline variant:
+
+> 选出最该复刻的那条热帖。
+
 This is narrower and stronger than "analyze viral posts." The product should feel like a quiet decision workspace for creators and content operators who save too many viral posts but need to decide what to draft next.
 
 ## Core User Problem

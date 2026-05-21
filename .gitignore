@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+.superpowers/**/state/server-info
+.superpowers/**/state/server-stopped
