@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hot Post Analyst Core Focus</title>
+  <style>
+    :root {
+      --ink: #18181b;
+      --muted: #686f68;
+      --soft: #929991;
+      --line: #e2e6df;
+      --bg: #fafbf7;
+      --panel: #ffffff;
+      --accent: #0f766e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    .page {
+      width: min(1200px, calc(100vw - 36px));
+      margin: 0 auto;
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: 68px 1fr;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 740;
+      letter-spacing: -.03em;
+    }
+    .mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: var(--ink);
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: .72fr 1.28fr;
+      gap: 44px;
+      align-items: center;
+      padding: 42px 0;
+    }
+    .copy {
+      max-width: 430px;
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 16px 0;
+      font-size: clamp(42px, 5.4vw, 70px);
+      line-height: .94;
+      letter-spacing: -.06em;
+    }
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.48;
+    }
+    .proof {
+      margin-top: 28px;
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .proof strong {
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .app {
+      min-height: 560px;
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      border: 1px solid rgba(24,24,27,.1);
+      border-radius: 30px;
+      background: var(--panel);
+      overflow: hidden;
+      box-shadow: 0 40px 90px -64px rgba(24,24,27,.65);
+    }
+    .side {
+      border-right: 1px solid var(--line);
+      padding: 18px 12px;
+      display: grid;
+      align-content: start;
+      justify-items: center;
+      gap: 12px;
+      background: #fbfcfa;
+    }
+    .side .dot {
+      width: 42px;
+      height: 42px;
+      border-radius: 15px;
+      border: 1px solid var(--line);
+      background: #fff;
+      position: relative;
+    }
+    .side .dot.active {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+    .side .dot:after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 3px;
+      background: #cfd6cf;
+    }
+    .side .dot.active:after { background: #dff7f2; }
+    .work {
+      display: grid;
+      grid-template-rows: 58px 1fr;
+    }
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--line);
+      color: var(--soft);
+      font-size: 13px;
+    }
+    .bar strong { color: var(--ink); }
+    .bar-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bar-tools span {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    .decision {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 24px;
+      align-items: center;
+      padding: 30px;
+    }
+    .cover {
+      aspect-ratio: 4 / 5;
+      border-radius: 26px;
+      background:
+        linear-gradient(145deg, rgba(15,118,110,.2), transparent 48%),
+        linear-gradient(180deg, #f5f8f3, #e7eee7);
+      border: 1px solid var(--line);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cover span {
+      width: fit-content;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.78);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 780;
+    }
+    .cover b {
+      font-size: 26px;
+      line-height: .98;
+      letter-spacing: -.05em;
+      max-width: 260px;
+    }
+    .next h2 {
+      margin: 0;
+      font-size: clamp(32px, 4vw, 52px);
+      line-height: .94;
+      letter-spacing: -.055em;
+    }
+    .next p {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+      max-width: 410px;
+    }
+    .action {
+      margin-top: 24px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .action small {
+      color: var(--soft);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+    }
+    .action b {
+      display: block;
+      margin-top: 6px;
+      font-size: 18px;
+      letter-spacing: -.03em;
+    }
+    .arrow {
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: white;
+      font-size: 24px;
+      line-height: 1;
+    }
+    @media (max-width: 900px) {
+      .page { width: min(100vw - 28px, 680px); }
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .app { grid-template-columns: 56px 1fr; min-height: auto; }
+      .decision { grid-template-columns: 1fr; padding: 18px; }
+      .top-actions span:first-child { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="nav">
+      <div class="brand"><div class="mark"></div> Hot Post Analyst</div>
+      <div class="top-actions">
+        <span>Private workspace</span>
+        <div class="icon">⌕</div>
+        <div class="icon">·</div>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="copy">
+        <div class="eyebrow">One weekly decision</div>
+        <h1>Pick the post worth recreating.</h1>
+        <p class="lead">A quiet workspace that turns saved viral posts into the next draft.</p>
+        <p class="proof"><strong>14,820 posts classified.</strong> Hooks, covers, demand signals, and repeatability stay inside your local workspace.</p>
+      </div>
+
+      <div class="app" aria-label="Focused product screenshot">
+        <aside class="side">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </aside>
+        <div class="work">
+          <div class="bar">
+            <span><strong>Today</strong> / Recreate queue</span>
+            <div class="bar-tools"><span></span><span></span><span></span></div>
+          </div>
+          <div class="decision">
+            <div class="cover">
+              <span>Score 86</span>
+              <b>Checklist cover with concrete proof</b>
+            </div>
+            <div class="next">
+              <h2>Draft this one.</h2>
+              <p>Keep the structure. Replace the promise with your own workflow. Measure saves before comments.</p>
+              <div class="action">
+                <div>
+                  <small>Next action</small>
+                  <b>Write three title variants</b>
+                </div>
+                <div class="arrow">›</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

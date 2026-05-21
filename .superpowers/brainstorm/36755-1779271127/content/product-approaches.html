@@ -1,0 +1,90 @@
+<h2>第一版产品方向：三种可落地形态</h2>
+<p class="subtitle">都支持小红书 + X、多平台采集适配器、本地私有凭证、AI 辅助拆解。差别在于第一屏和开发重心。</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A. 复刻项目 OS</div>
+        <div class="mockup-body">
+          <div class="mock-nav">项目看板 | 热帖库 | 拆解工作台 | 数据同步</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px">
+            <div class="placeholder">待选题<br>参考热帖 8</div>
+            <div class="placeholder">拆解中<br>封面/标题/正文</div>
+            <div class="placeholder">已发布<br>指标趋势</div>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:12px">
+            <div class="placeholder">项目详情：假设、复刻动作、发布记录、复盘</div>
+            <div class="placeholder">AI 建议<br>下一步</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. 复刻项目 OS</h3>
+      <p>推荐。以“我要复刻并追踪成长”为主线，热帖研究和拆解都是项目的输入。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B. 爆款研究数据库</div>
+        <div class="mockup-body">
+          <div class="mock-nav">热帖库 | 对比 | 标签 | 导入/同步</div>
+          <div style="display:grid;grid-template-columns:1.2fr 2fr;gap:10px;margin-top:12px">
+            <div class="placeholder">筛选器<br>平台/赛道/账号/指标</div>
+            <div class="placeholder">表格：标题、封面标签、互动率、发布时间、收藏比</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+            <div class="placeholder">横向对比矩阵</div>
+            <div class="placeholder">聚类/推荐同类热帖</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. 爆款研究数据库</h3>
+      <p>适合先做强采集、检索、横向对比；但“自己的复刻闭环”会变成二级功能。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">C. 单帖深度拆解台</div>
+        <div class="mockup-body">
+          <div class="mock-nav">原帖素材 | AI 初稿 | 人工判断 | 复刻模板</div>
+          <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:10px;margin-top:12px">
+            <div class="placeholder">封面/图片<br>OCR + 视觉标签</div>
+            <div class="placeholder">标题钩子、正文结构、评论需求、复刻要点</div>
+          </div>
+          <div class="placeholder" style="margin-top:12px">拆解报告输出：可复用模板 + 风险提醒 + 发布假设</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. 单帖深度拆解台</h3>
+      <p>分析体验最强，适合打磨方法论；但多项目追踪和长期数据资产感会弱一些。</p>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>我的建议</h4>
+    <ul>
+      <li>采用 A 作为主产品骨架。</li>
+      <li>B 做成热帖库模块，支撑选题和横向对比。</li>
+      <li>C 做成项目内的单帖拆解视图。</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>首版控制</h4>
+    <ul>
+      <li>账号级自动发现新帖先预留，不默认开启。</li>
+      <li>小红书私有后台数据用本地账号态低频同步。</li>
+      <li>官方 API 可用时优先走官方适配器。</li>
+    </ul>
+  </div>
+</div>

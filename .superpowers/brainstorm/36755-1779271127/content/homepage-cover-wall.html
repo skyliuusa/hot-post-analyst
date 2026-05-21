@@ -1,0 +1,58 @@
+<h2>首页方向：我的选题热帖封面墙</h2>
+<p class="subtitle">第一屏聚焦“还没复刻、值得研究的热帖”。项目状态藏在每张封面后面，减少管理感，增强选题和创作冲动。</p>
+
+<div class="mockup">
+  <div class="mockup-header">首页：我的选题热帖（未复刻）</div>
+  <div class="mockup-body">
+    <div class="mock-nav">Hot Post Analyst | 未复刻 | 拆解中 | 已复刻 | 热帖库 | 同步</div>
+    <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-top:12px">
+      <div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="mock-button">小红书</button>
+          <button class="mock-button">X</button>
+          <button class="mock-button">美妆/知识/职场</button>
+          <button class="mock-button">高收藏比</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <div class="placeholder" style="aspect-ratio:3/4">封面<br>标题钩子<br>收藏比 18%</div>
+          <div class="placeholder" style="aspect-ratio:3/4">封面<br>人群痛点<br>评论需求高</div>
+          <div class="placeholder" style="aspect-ratio:3/4">封面<br>教程型<br>同类 12 条</div>
+          <div class="placeholder" style="aspect-ratio:3/4">封面<br>情绪型<br>待拆解</div>
+          <div class="placeholder" style="aspect-ratio:3/4">封面<br>清单型<br>可复刻</div>
+          <div class="placeholder" style="aspect-ratio:3/4">封面<br>对比型<br>发布时间优</div>
+          <div class="placeholder" style="aspect-ratio:3/4">封面<br>观点型<br>X 同题</div>
+          <div class="placeholder" style="aspect-ratio:3/4">封面<br>避坑型<br>高评论</div>
+        </div>
+      </div>
+      <div style="display:grid;gap:10px">
+        <div class="placeholder">选中热帖预览：封面元素、标题结构、正文框架、评论需求词</div>
+        <div class="placeholder">同类热帖横向对比：互动率、账号体量、发布时间、封面套路</div>
+        <div class="placeholder">复刻动作：加入项目 / AI 拆解 / 标记不适合 / 设置追踪</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="cover-wall-primary" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>封面墙作为首页主入口</h3>
+      <p>首页只展示未复刻热帖，适合“每天打开就选一个值得复刻的对象”。推荐采用。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="cover-wall-with-kanban" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>封面墙 + 轻量项目状态</h3>
+      <p>封面墙仍是主视觉，但保留未复刻、拆解中、已发布、待复盘这些状态入口。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="cover-wall-only" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>纯素材灵感流</h3>
+      <p>更像 Pinterest/小红书收藏夹，项目管理弱化，适合高频浏览但长期追踪会弱一点。</p>
+    </div>
+  </div>
+</div>

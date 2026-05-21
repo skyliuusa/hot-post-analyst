@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hot Post Analyst Simple Landing Mockup</title>
+  <style>
+    :root {
+      --ink: #18181b;
+      --muted: #5f655f;
+      --soft: #8a9188;
+      --line: #dfe3dc;
+      --bg: #f8f9f5;
+      --panel: #ffffff;
+      --accent: #0f766e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    .shell {
+      width: min(1180px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 24px 0 44px;
+    }
+    .nav {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 720;
+      letter-spacing: -.02em;
+    }
+    .mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      background: var(--ink);
+      position: relative;
+    }
+    .mark:after {
+      content: "";
+      position: absolute;
+      inset: 8px 7px 7px 8px;
+      border-top: 2px solid #dff7f2;
+      border-left: 2px solid #dff7f2;
+    }
+    .links {
+      display: flex;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    button {
+      border: 0;
+      border-radius: 999px;
+      min-height: 44px;
+      padding: 0 18px;
+      font-weight: 700;
+      background: var(--ink);
+      color: white;
+      cursor: pointer;
+    }
+    button:active { transform: translateY(1px); }
+    .hero {
+      min-height: calc(100dvh - 80px);
+      display: grid;
+      grid-template-columns: .94fr 1.06fr;
+      gap: 64px;
+      align-items: center;
+      padding: 34px 0 20px;
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 740;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 18px 0 18px;
+      max-width: 660px;
+      font-size: clamp(44px, 5.8vw, 76px);
+      line-height: .94;
+      letter-spacing: -.055em;
+    }
+    .lead {
+      max-width: 540px;
+      color: var(--muted);
+      font-size: 19px;
+      line-height: 1.55;
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .secondary {
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line);
+    }
+    .proof {
+      margin-top: 30px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      max-width: 540px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .proof strong {
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .shot-wrap {
+      position: relative;
+    }
+    .shot {
+      border: 1px solid rgba(24,24,27,.1);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: 0 34px 80px -54px rgba(24,24,27,.55);
+      overflow: hidden;
+    }
+    .chrome {
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      color: var(--soft);
+      font-size: 12px;
+    }
+    .dots { display: flex; gap: 7px; }
+    .dots i {
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: #cbd1ca;
+    }
+    .app {
+      padding: 22px;
+      min-height: 430px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+    .summary {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .summary h2 {
+      margin: 0;
+      font-size: 27px;
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+    .summary p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .score {
+      color: var(--accent);
+      font-size: 32px;
+      font-weight: 760;
+      letter-spacing: -.05em;
+      font-variant-numeric: tabular-nums;
+    }
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 54px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 70px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fbfcfa;
+    }
+    .thumb {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background:
+        linear-gradient(145deg, rgba(15,118,110,.18), transparent 54%),
+        #edf1ec;
+    }
+    .item b {
+      display: block;
+      font-size: 14px;
+      letter-spacing: -.02em;
+    }
+    .item span {
+      display: block;
+      margin-top: 5px;
+      color: var(--soft);
+      font-size: 12px;
+    }
+    .pill {
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--accent);
+      background: rgba(15,118,110,.08);
+      font-size: 12px;
+      font-weight: 720;
+      font-variant-numeric: tabular-nums;
+    }
+    .brief {
+      border-radius: 20px;
+      background: var(--ink);
+      color: white;
+      padding: 18px;
+    }
+    .brief p {
+      margin: 0;
+      color: rgba(255,255,255,.74);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .note {
+      margin: 16px auto 0;
+      color: var(--soft);
+      font-size: 13px;
+      text-align: center;
+    }
+    @media (max-width: 900px) {
+      .shell { width: min(100vw - 28px, 680px); }
+      .links { display: none; }
+      .hero { grid-template-columns: 1fr; gap: 34px; padding-top: 28px; }
+      .summary { align-items: start; gap: 20px; }
+      .item { grid-template-columns: 46px 1fr; }
+      .pill { grid-column: 2; width: fit-content; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="nav">
+      <div class="brand"><div class="mark"></div> Hot Post Analyst</div>
+      <div class="links">
+        <span>Workflow</span>
+        <span>Proof</span>
+        <span>Pricing</span>
+      </div>
+      <button>Start tracking</button>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Creator growth workspace</div>
+        <h1>Turn saved viral posts into publishable ideas.</h1>
+        <p class="lead">Hot Post Analyst helps creators choose what to recreate this week, understand why it worked, and turn the signal into a draft.</p>
+        <div class="actions">
+          <button>Start tracking</button>
+          <button class="secondary">See product</button>
+        </div>
+        <p class="proof"><strong>14,820 posts classified</strong> across hooks, covers, demand signals, and repeatability. Built for private, local-first creator research.</p>
+      </div>
+
+      <div class="shot-wrap">
+        <div class="shot" aria-label="Product screenshot mockup">
+          <div class="chrome">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span>Weekly brief</span>
+          </div>
+          <div class="app">
+            <div class="summary">
+              <div>
+                <h2>This week's best recreate candidate</h2>
+                <p>Ranked by repeatability and audience demand</p>
+              </div>
+              <div class="score">86</div>
+            </div>
+            <div class="list">
+              <div class="item">
+                <div class="thumb"></div>
+                <div><b>Checklist cover with concrete proof</b><span>High save intent, clear title pattern</span></div>
+                <div class="pill">Draft today</div>
+              </div>
+              <div class="item">
+                <div class="thumb"></div>
+                <div><b>Comment thread shows buyer confusion</b><span>Use objections as opening angle</span></div>
+                <div class="pill">Review</div>
+              </div>
+            </div>
+            <div class="brief">
+              <p>Suggested action: keep the checklist structure, replace the promise with your own workflow, and measure saves before comments.</p>
+            </div>
+          </div>
+        </div>
+        <p class="note">One screenshot. One weekly decision. No dashboard clutter.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<h2>Hot Post Analyst landing redesign</h2>
+<p class="subtitle">当前工作区没有 React/Tailwind 项目文件，也不是 git 仓库。先确认落点，再进入具体设计稿和实现计划。</p>
+
+<div class="options">
+  <div class="option" data-choice="scaffold-new" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>在当前空目录新建 React + Tailwind landing page</h3>
+      <p>适合快速落地完整页面。我会基于现有 Hot Post Analyst 方向搭一个可运行 Vite/React 页面。</p>
+    </div>
+  </div>
+  <div class="option" data-choice="use-existing-repo" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>你提供真实前端仓库路径后，我重构现有页面</h3>
+      <p>适合“重新设计这些页面”的原意是改已有产品代码。这样能保留现有组件、路由和部署约束。</p>
+    </div>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="operator-os" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">
+        Hero: left-aligned conversion copy / right-side product cockpit screenshot / trust row below CTA
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Creator Operating System</h3>
+      <p>推荐方向。把爆款收藏、拆解、复刻、发布、复盘包装成创作者增长操作系统，B2B SaaS 可信度最强。</p>
+    </div>
+  </div>
+  <div class="card" data-choice="research-desk" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">
+        Hero: compact proof metrics / editorial research desk screenshot / teardown pipeline
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Viral Research Desk</h3>
+      <p>更像内容团队的研究台，强调素材洞察和评论信号。专业但转化动机略偏分析，而不是持续行动。</p>
+    </div>
+  </div>
+  <div class="card" data-choice="private-growth" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">
+        Hero: private local analytics / credential safety / weekly growth evidence
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Private Growth Loop</h3>
+      <p>强调本地私有和复盘证据，适合担心账号数据和创作资产安全的团队。信任强，情绪张力弱一点。</p>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">Recommended first screen composition</div>
+  <div class="mockup-body">
+    <div class="mock-nav">Hot Post Analyst | Workflow | Proof | Tour | Pricing | Start tracking</div>
+    <div style="display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;margin-top:18px;align-items:center">
+      <div>
+        <div class="placeholder" style="min-height:42px">Trusted by operators turning saved posts into shipped content</div>
+        <div class="placeholder" style="min-height:138px;font-size:18px">
+          Stop collecting viral posts. Turn them into a weekly publishing system.
+          <br><br>
+          Prioritize what to recreate, extract the hook, ship a draft, and track what actually moved.
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="mock-button">Start tracking</button>
+          <button class="mock-button">View product tour</button>
+        </div>
+        <div class="placeholder" style="margin-top:12px">Proof: 14,820 posts classified / 312 weekly briefs generated / local-first workspace</div>
+      </div>
+      <div class="placeholder" style="aspect-ratio:16/10">Product screenshot: cover wall + teardown queue + weekly action brief</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,81 @@
+<h2>SaaS Landing Page 设计方向</h2>
+<p class="subtitle">目标：现代 B2B SaaS，不模板化。首屏直接卖“让创作者持续复刻、发布、复盘并成长”，而不是泛泛讲爆款分析。</p>
+
+<div class="mockup">
+  <div class="mockup-header">首屏结构：高转化标题 + 可信背书 + 产品截图</div>
+  <div class="mockup-body">
+    <div class="mock-nav">Hot Post Analyst | Product | Workflow | Proof | Pricing | Start tracking</div>
+    <div style="display:grid;grid-template-columns:.95fr 1.05fr;gap:16px;margin-top:16px;align-items:center">
+      <div>
+        <div class="placeholder" style="min-height:46px">Trusted by solo creators, IP operators, and content teams tracking repeatable growth</div>
+        <div class="placeholder" style="min-height:122px;font-size:18px">
+          Turn saved viral posts into a weekly creation system.
+          <br><br>
+          Analyze covers, hooks, comments, and your own repost results in one private workspace.
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="mock-button">Start local workspace</button>
+          <button class="mock-button">View product tour</button>
+        </div>
+        <div class="placeholder" style="margin-top:10px">Proof row: 2 platforms tracked / private local credentials / AI-assisted teardown / weekly growth loop</div>
+      </div>
+      <div>
+        <div class="placeholder" style="aspect-ratio:16/10">
+          Product screenshot area:
+          <br>未复刻热帖封面墙
+          <br>今日创作动作
+          <br>横向对比 + 复盘指标
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="operator-os" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">Narrative: viral research becomes an operating system for weekly output</div>
+    </div>
+    <div class="card-body">
+      <h3>A. Creator Operating System</h3>
+      <p>推荐。高端 B2B SaaS 感更强，适合个人 IP、内容团队、操盘手。卖点是持续产出和增长闭环。</p>
+    </div>
+  </div>
+  <div class="card" data-choice="analysis-lab" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">Narrative: dissect viral posts with AI and structured frameworks</div>
+    </div>
+    <div class="card-body">
+      <h3>B. Viral Analysis Lab</h3>
+      <p>更直接表达爆款分析，但容易像 AI 工具模板页，和“持续成长”目标弱一点。</p>
+    </div>
+  </div>
+  <div class="card" data-choice="private-data" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">Narrative: local-first private analytics for creators</div>
+    </div>
+    <div class="card-body">
+      <h3>C. Private Creator Analytics</h3>
+      <p>强调本地私有和账号后台数据，信任感强；但转化标题可能偏技术，创作动机弱一些。</p>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>设计决策</h4>
+    <ul>
+      <li>首屏不做抽象插画，使用真实产品截图区域承载可信度。</li>
+      <li>标题聚焦“从收藏热帖到持续创作系统”，避免泛 AI 和泛分析话术。</li>
+      <li>视觉采用安静、锋利、专业的 B2B SaaS 风格，保留小红书封面墙的内容张力。</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>实现约束</h4>
+    <ul>
+      <li>React + Tailwind 组件化实现。</li>
+      <li>首屏包含强转化标题、可信背书、CTA、产品截图区域。</li>
+      <li>后续页面区块围绕 workflow、AI teardown、private tracking、growth proof 展开。</li>
+    </ul>
+  </div>
+</div>

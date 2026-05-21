@@ -1,0 +1,84 @@
+<h2>Design proposal: Creator Operating System</h2>
+<p class="subtitle">Recommended direction for a modern B2B SaaS landing page: quiet, asymmetric, product-led, conversion-first.</p>
+
+<div class="mockup">
+  <div class="mockup-header">First viewport: conversion copy + proof + product screenshot</div>
+  <div class="mockup-body">
+    <div class="mock-nav">Hot Post Analyst | Workflow | Signals | Proof | Pricing | Start tracking</div>
+    <div style="display:grid;grid-template-columns:.86fr 1.14fr;gap:18px;margin-top:18px;align-items:center">
+      <div>
+        <div class="placeholder" style="min-height:34px">Local-first analytics for creator operators and content teams</div>
+        <div class="placeholder" style="min-height:150px;font-size:19px;line-height:1.22">
+          Stop collecting viral posts. Turn them into a weekly publishing system.
+          <br><br>
+          Prioritize what to recreate, extract the hook, draft the angle, and measure which posts actually moved.
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="mock-button">Start tracking</button>
+          <button class="mock-button">View product tour</button>
+        </div>
+        <div class="placeholder" style="margin-top:12px">14,820 posts classified / 312 weekly briefs generated / private local workspace</div>
+      </div>
+      <div class="placeholder" style="aspect-ratio:16/10">
+        Product screenshot composition:
+        <br>left cover wall
+        <br>center teardown queue
+        <br>right weekly action brief
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="product-led" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">High fidelity app screenshot dominates the first viewport</div>
+    </div>
+    <div class="card-body">
+      <h3>A. Product-led operator page</h3>
+      <p>Recommended. Most credible for SaaS: the page sells the workflow through the interface, not abstract claims.</p>
+    </div>
+  </div>
+  <div class="card" data-choice="editorial-proof" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">Editorial copy with proof bands and customer pull quotes</div>
+    </div>
+    <div class="card-body">
+      <h3>B. Proof-led editorial page</h3>
+      <p>Stronger narrative voice, but slower to understand the product. Better once real testimonials exist.</p>
+    </div>
+  </div>
+  <div class="card" data-choice="dark-command" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="placeholder">Dark command-center look with dense metrics and terminal-like panels</div>
+    </div>
+    <div class="card-body">
+      <h3>C. Command-center page</h3>
+      <p>Memorable but riskier: can feel heavier and less approachable for creators who want action over analytics.</p>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>Page structure</h4>
+    <ul>
+      <li>Sticky compact nav with one primary CTA.</li>
+      <li>Asymmetric hero: left conversion copy, right product screenshot area.</li>
+      <li>Trust strip directly under CTA with concrete operational proof.</li>
+      <li>Workflow section: Discover, Teardown, Draft, Publish, Review.</li>
+      <li>Screenshot-led feature bento with live signals, hook extraction, weekly briefs.</li>
+      <li>Pricing and final CTA designed as direct decision points, not generic marketing blocks.</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>Visual system</h4>
+    <ul>
+      <li>Neutral zinc/slate base, off-white surfaces, one restrained teal accent.</li>
+      <li>Geist or Satoshi-style sans typography; no serif, no Inter dependency assumption.</li>
+      <li>CSS-only motion: staggered reveal, shimmer skeletons, subtle active press states.</li>
+      <li>No emoji, no purple-blue AI gradient, no generic three-card feature row.</li>
+      <li>Mobile collapses to single column with screenshot after the primary CTA.</li>
+    </ul>
+  </div>
+</div>
