@@ -4,6 +4,10 @@ Date: 2026-05-21
 
 Status: Draft for review. Implementation is intentionally paused. The next design step is Figma, not React implementation.
 
+Figma draft:
+
+https://www.figma.com/design/0mCQSOVBhqLOSH6YVrLeZU
+
 ## Goal
 
 Design a focused B2B SaaS landing page for Hot Post Analyst before writing React code.
@@ -232,6 +236,12 @@ Primary recommendation:
 
 - Use Figma for final UI frames, component states, and developer handoff.
 - Build the Figma design before any React + Tailwind implementation.
+
+Current Figma draft includes:
+
+- `Desktop / Landing first viewport`
+- `Mobile / Landing first viewport`
+- `Design Tokens / Landing`
 
 Fast iteration:
 
