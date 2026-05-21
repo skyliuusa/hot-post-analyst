@@ -252,6 +252,14 @@ Current Figma draft includes:
 - `Mobile / Landing first viewport`
 - `Design Tokens / Landing`
 
+Current repo prototype includes:
+
+- `Landing`
+- `今日`
+- `收藏`
+- `起稿`
+- `复盘`
+
 Fast iteration:
 
 - Continue using Codex visual companion for rough layout and product-core iterations.
