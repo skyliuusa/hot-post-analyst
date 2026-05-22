@@ -23,6 +23,7 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
   const [finalTitle, setFinalTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [nextAction, setNextAction] = useState('保留当前结构，继续做下一版标题和封面证据。');
+  const [savedAt, setSavedAt] = useState<string | null>(null);
   const canSave = Boolean(postSignalId && draftBriefId);
 
   function handleSaveReview() {
@@ -43,6 +44,11 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
       createdAt,
       updatedAt: createdAt,
     });
+    setSavedAt(createdAt);
+  }
+
+  function markUnsaved() {
+    if (savedAt) setSavedAt(null);
   }
 
   return (
@@ -59,7 +65,10 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
           发布平台
           <select
             className="min-h-12 rounded-[18px] border border-line bg-white px-4 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
-            onChange={(event) => setPublishedPlatform(event.target.value as SourcePlatform)}
+            onChange={(event) => {
+              markUnsaved();
+              setPublishedPlatform(event.target.value as SourcePlatform);
+            }}
             value={publishedPlatform}
           >
             {platforms.map((platform) => (
@@ -74,7 +83,10 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
           最终标题
           <input
             className="min-h-12 rounded-[18px] border border-line bg-white px-4 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
-            onChange={(event) => setFinalTitle(event.target.value)}
+            onChange={(event) => {
+              markUnsaved();
+              setFinalTitle(event.target.value);
+            }}
             placeholder="填写实际发布标题"
             type="text"
             value={finalTitle}
@@ -85,7 +97,10 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
           复盘备注
           <textarea
             className="min-h-28 resize-y rounded-[18px] border border-line bg-white px-4 py-3 text-base font-medium leading-7 text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
-            onChange={(event) => setNotes(event.target.value)}
+            onChange={(event) => {
+              markUnsaved();
+              setNotes(event.target.value);
+            }}
             placeholder="记录保存、评论或选题反馈"
             value={notes}
           />
@@ -95,7 +110,10 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
           下一轮动作
           <input
             className="min-h-12 rounded-[18px] border border-line bg-white px-4 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
-            onChange={(event) => setNextAction(event.target.value)}
+            onChange={(event) => {
+              markUnsaved();
+              setNextAction(event.target.value);
+            }}
             type="text"
             value={nextAction}
           />
@@ -109,6 +127,11 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
         >
           保存复盘
         </button>
+        {savedAt ? (
+          <p aria-live="polite" className="text-center text-sm font-bold text-accent" role="status">
+            已保存复盘
+          </p>
+        ) : null}
       </div>
     </div>
   );
