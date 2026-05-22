@@ -111,6 +111,32 @@ const savedPosts: SavedPost[] = [
   },
 ];
 
+const importedPalettes = [
+  'from-[#e6f4ef] via-[#f7faf5] to-[#dfeee9]',
+  'from-[#edf2ea] via-[#fbfcf8] to-[#e7efe3]',
+  'from-[#f0f1e8] via-[#fbfaf4] to-[#e8eee6]',
+];
+
+function mapPostSignalsToSavedPosts(signals: PostSignal[]): SavedPost[] {
+  const topicCounts = signals.reduce<Record<string, number>>((counts, signal) => {
+    counts[signal.topic] = (counts[signal.topic] ?? 0) + 1;
+    return counts;
+  }, {});
+
+  return signals.map((signal, index) => ({
+    id: signal.id,
+    score: String(signal.replicationScore),
+    title: signal.title,
+    hookLines: signal.hookLines,
+    topic: signal.topic,
+    topicCount: topicCounts[signal.topic] ?? 1,
+    signal: signal.hookSignal,
+    content: signal.draftSeed,
+    draft: signal.recommendedNextAction,
+    palette: importedPalettes[index % importedPalettes.length],
+  }));
+}
+
 function getInitialView(): ViewId {
   const view = new URLSearchParams(window.location.search).get('view');
   return views.some((item) => item.id === view) ? (view as ViewId) : 'landing';
@@ -382,10 +408,10 @@ function ImageTile({
   );
 }
 
-function CoverWall({ onClick }: { onClick: (post: SavedPost) => void }) {
+function CoverWall({ onClick, posts }: { onClick: (post: SavedPost) => void; posts: SavedPost[] }) {
   return (
     <div className="grid auto-rows-[178px] grid-cols-2 gap-4 md:grid-cols-3 md:auto-rows-[190px]">
-      {savedPosts.map((post, index) => (
+      {posts.map((post, index) => (
         <ImageTile featured={index === 0} index={index} key={post.id} post={post} onClick={onClick} />
       ))}
     </div>
@@ -462,8 +488,8 @@ function TopicCard({ topic, posts, onClick }: { topic: string; posts: SavedPost[
   );
 }
 
-function TopicView({ onClick }: { onClick: (post: SavedPost) => void }) {
-  const groups = savedPosts.reduce<Record<string, SavedPost[]>>((result, post) => {
+function TopicView({ onClick, posts }: { onClick: (post: SavedPost) => void; posts: SavedPost[] }) {
+  const groups = posts.reduce<Record<string, SavedPost[]>>((result, post) => {
     result[post.topic] = [...(result[post.topic] ?? []), post];
     return result;
   }, {});
@@ -539,12 +565,12 @@ function SavedDetailOverlay({
   );
 }
 
-function SavedPage({ onDraft }: { onDraft: (post: SavedPost) => void }) {
+function SavedPage({ onDraft, posts }: { onDraft: (post: SavedPost) => void; posts: SavedPost[] }) {
   const detailFromQuery = new URLSearchParams(window.location.search).get('detail');
   const modeFromQuery = new URLSearchParams(window.location.search).get('mode');
   const [mode, setMode] = useState<SavedMode>(modeFromQuery === 'hook' || modeFromQuery === 'topic' ? modeFromQuery : 'cover');
   const [selectedPost, setSelectedPost] = useState<SavedPost | null>(
-    detailFromQuery ? savedPosts.find((post) => post.id === detailFromQuery) ?? null : null,
+    detailFromQuery ? posts.find((post) => post.id === detailFromQuery) ?? null : null,
   );
 
   function handleModeChange(nextMode: SavedMode) {
@@ -569,18 +595,18 @@ function SavedPage({ onDraft }: { onDraft: (post: SavedPost) => void }) {
         </div>
 
         {mode === 'cover' ? (
-          <CoverWall onClick={setSelectedPost} />
+          <CoverWall onClick={setSelectedPost} posts={posts} />
         ) : null}
 
         {mode === 'hook' ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {savedPosts.map((post) => (
+            {posts.map((post) => (
               <HookCard key={post.id} post={post} onClick={setSelectedPost} />
             ))}
           </div>
         ) : null}
 
-        {mode === 'topic' ? <TopicView onClick={setSelectedPost} /> : null}
+        {mode === 'topic' ? <TopicView onClick={setSelectedPost} posts={posts} /> : null}
       </div>
       {selectedPost ? <SavedDetailOverlay onClose={() => setSelectedPost(null)} onDraft={onDraft} post={selectedPost} /> : null}
     </>
@@ -650,6 +676,7 @@ function ProductPage({
   importSession,
   onImportSessionReady,
   onImportSave,
+  savedRoutePosts,
 }: {
   activeView: Exclude<ViewId, 'landing'>;
   onViewChange: (view: ViewId) => void;
@@ -658,20 +685,21 @@ function ProductPage({
   importSession: ImportSession | null;
   onImportSessionReady: (session: ImportSession) => void;
   onImportSave: (postSignal: PostSignal) => void;
+  savedRoutePosts: SavedPost[];
 }) {
   const content = useMemo(() => {
     if (activeView === 'import') {
       return importSession ? (
-        <CorrectionWorkspace initialSession={importSession} onSave={onImportSave} />
+        <CorrectionWorkspace initialSession={importSession} onSave={onImportSave} onSessionChange={onImportSessionReady} />
       ) : (
         <ImportEntry onSessionReady={onImportSessionReady} />
       );
     }
-    if (activeView === 'saved') return <SavedPage onDraft={onDraft} />;
+    if (activeView === 'saved') return <SavedPage onDraft={onDraft} posts={savedRoutePosts} />;
     if (activeView === 'draft') return <DraftPage post={selectedDraft} />;
     if (activeView === 'review') return <ReviewPage />;
     return <TodayPage />;
-  }, [activeView, importSession, onDraft, onImportSave, onImportSessionReady, selectedDraft]);
+  }, [activeView, importSession, onDraft, onImportSave, onImportSessionReady, savedRoutePosts, selectedDraft]);
 
   return (
     <section className="py-8">
@@ -686,7 +714,9 @@ export default function App() {
   const [activeView, setActiveView] = useState<ViewId>(getInitialView);
   const [selectedDraft, setSelectedDraft] = useState<SavedPost>(getInitialDraft);
   const [importSession, setImportSession] = useState<ImportSession | null>(null);
-  const { savePostSignal } = useWorkspaceStore();
+  const { postSignals, savePostSignal } = useWorkspaceStore();
+  const importedSavedPosts = useMemo(() => mapPostSignalsToSavedPosts(postSignals), [postSignals]);
+  const savedRoutePosts = importedSavedPosts.length > 0 ? importedSavedPosts : savedPosts;
 
   function handleViewChange(view: ViewId) {
     setActiveView(view);
@@ -721,6 +751,7 @@ export default function App() {
             onImportSave={handleImportSave}
             onImportSessionReady={setImportSession}
             onViewChange={handleViewChange}
+            savedRoutePosts={savedRoutePosts}
             selectedDraft={selectedDraft}
           />
         )}

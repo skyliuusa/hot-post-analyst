@@ -12,6 +12,7 @@ import { extractOcrSuggestions } from '../../services/ocrImport';
 type CorrectionWorkspaceProps = {
   initialSession: ImportSession;
   onSave: (postSignal: PostSignal) => void;
+  onSessionChange?: (session: ImportSession) => void;
 };
 
 const platformOptions: Array<{ value: SourcePlatform; label: string }> = [
@@ -26,18 +27,28 @@ function updateField<K extends keyof ExtractedFields>(session: ImportSession, fi
   return markUserEditedField(session, field, value);
 }
 
-export function CorrectionWorkspace({ initialSession, onSave }: CorrectionWorkspaceProps) {
+export function CorrectionWorkspace({ initialSession, onSave, onSessionChange }: CorrectionWorkspaceProps) {
   const [session, setSession] = useState<ImportSession>(initialSession);
   const [ocrText, setOcrText] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
   const fields = session.extractedFields;
 
+  function commitSession(nextSession: ImportSession) {
+    setSession(nextSession);
+    onSessionChange?.(nextSession);
+  }
+
   async function handleOcrParse() {
     const result = await extractOcrSuggestions({ fileName: 'ocr-text.txt', text: ocrText });
-    setSession((current) => ({
-      ...applyExtractedFields({ ...current, rawText: ocrText }, result.fields, result.confidence),
+    const nextSession = {
+      ...applyExtractedFields(
+        { ...session, rawText: ocrText },
+        { ...result.fields, bodySummary: ocrText },
+        { ...result.confidence, bodySummary: 'medium' },
+      ),
       parseErrors: [],
-    }));
+    };
+    commitSession(nextSession);
     setErrors([]);
   }
 
@@ -74,7 +85,7 @@ export function CorrectionWorkspace({ initialSession, onSave }: CorrectionWorksp
           平台
           <select
             className="min-h-12 rounded-[18px] border border-line bg-white px-4 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
-            onChange={(event) => setSession((current) => updateField(current, 'sourcePlatform', event.target.value as SourcePlatform))}
+            onChange={(event) => commitSession(updateField(session, 'sourcePlatform', event.target.value as SourcePlatform))}
             value={fields.sourcePlatform ?? session.sourcePlatform}
           >
             {platformOptions.map((option) => (
@@ -89,7 +100,7 @@ export function CorrectionWorkspace({ initialSession, onSave }: CorrectionWorksp
           标题
           <input
             className="min-h-12 rounded-[18px] border border-line bg-white px-4 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
-            onChange={(event) => setSession((current) => updateField(current, 'title', event.target.value))}
+            onChange={(event) => commitSession(updateField(session, 'title', event.target.value))}
             type="text"
             value={fields.title ?? ''}
           />
@@ -100,9 +111,9 @@ export function CorrectionWorkspace({ initialSession, onSave }: CorrectionWorksp
           <textarea
             className="min-h-32 resize-y rounded-[20px] border border-line bg-white p-4 text-base leading-7 text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
             onChange={(event) =>
-              setSession((current) =>
+              commitSession(
                 updateField(
-                  current,
+                  session,
                   'hookLines',
                   event.target.value
                     .split(/\r?\n/)
@@ -119,7 +130,7 @@ export function CorrectionWorkspace({ initialSession, onSave }: CorrectionWorksp
           选题
           <input
             className="min-h-12 rounded-[18px] border border-line bg-white px-4 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
-            onChange={(event) => setSession((current) => updateField(current, 'topic', event.target.value))}
+            onChange={(event) => commitSession(updateField(session, 'topic', event.target.value))}
             type="text"
             value={fields.topic ?? ''}
           />
