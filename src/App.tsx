@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ImportSession, PostSignal } from './domain/types';
+import type { DraftBrief, ImportSession, PostSignal, ReviewResult } from './domain/types';
+import { DraftWorkspace } from './features/draft/DraftWorkspace';
 import { CorrectionWorkspace } from './features/import/CorrectionWorkspace';
 import { ImportEntry } from './features/import/ImportEntry';
+import { ReviewWorkspace } from './features/review/ReviewWorkspace';
 import { SavedWorkspace } from './features/saved/SavedWorkspace';
 import { useWorkspaceStore } from './state/workspaceStore';
 
@@ -705,18 +707,24 @@ function ReviewPage() {
 
 function ProductPage({
   activeView,
+  draftBriefId,
   onViewChange,
   selectedDraftSignal,
   onDraft,
+  onSaveBrief,
+  onSaveReview,
   importSession,
   onImportSessionReady,
   onImportSave,
   savedRoutePostSignals,
 }: {
   activeView: Exclude<ViewId, 'landing'>;
+  draftBriefId?: string;
   onViewChange: (view: ViewId) => void;
   selectedDraftSignal?: PostSignal;
   onDraft: (signal: PostSignal) => void;
+  onSaveBrief: (brief: DraftBrief) => void;
+  onSaveReview: (review: ReviewResult) => void;
   importSession: ImportSession | null;
   onImportSessionReady: (session: ImportSession) => void;
   onImportSave: (postSignal: PostSignal) => void;
@@ -731,10 +739,29 @@ function ProductPage({
       );
     }
     if (activeView === 'saved') return <SavedWorkspace postSignals={savedRoutePostSignals} onDraft={onDraft} />;
-    if (activeView === 'draft') return <DraftPage signal={selectedDraftSignal} />;
-    if (activeView === 'review') return <ReviewPage />;
+    if (activeView === 'draft') return <DraftWorkspace signal={selectedDraftSignal} onSaveBrief={onSaveBrief} />;
+    if (activeView === 'review') {
+      return (
+        <ReviewWorkspace
+          draftBriefId={draftBriefId}
+          onSaveReview={onSaveReview}
+          postSignalId={selectedDraftSignal?.id}
+        />
+      );
+    }
     return <TodayPage />;
-  }, [activeView, importSession, onDraft, onImportSave, onImportSessionReady, savedRoutePostSignals, selectedDraftSignal]);
+  }, [
+    activeView,
+    draftBriefId,
+    importSession,
+    onDraft,
+    onImportSave,
+    onImportSessionReady,
+    onSaveBrief,
+    onSaveReview,
+    savedRoutePostSignals,
+    selectedDraftSignal,
+  ]);
 
   return (
     <section className="py-8">
@@ -749,8 +776,11 @@ export default function App() {
   const [activeView, setActiveView] = useState<ViewId>(getInitialView);
   const [selectedDraftSignal, setSelectedDraftSignal] = useState<PostSignal | undefined>(getInitialDraftSignal);
   const [importSession, setImportSession] = useState<ImportSession | null>(null);
-  const { postSignals, savePostSignal } = useWorkspaceStore();
-  const visiblePostSignals = postSignals.length > 0 ? postSignals : demoPostSignals;
+  const workspace = useWorkspaceStore();
+  const visiblePostSignals = workspace.postSignals.length > 0 ? workspace.postSignals : demoPostSignals;
+  const selectedDraftBriefId = selectedDraftSignal
+    ? workspace.draftBriefs.find((brief) => brief.postSignalId === selectedDraftSignal.id)?.id
+    : undefined;
 
   useEffect(() => {
     if (activeView !== 'draft') return;
@@ -777,7 +807,7 @@ export default function App() {
   }
 
   function handleImportSave(postSignal: PostSignal) {
-    savePostSignal(postSignal);
+    workspace.savePostSignal(postSignal);
     setImportSession(null);
     setActiveView('saved');
     window.history.replaceState(null, '', `${window.location.pathname}?view=saved`);
@@ -792,10 +822,13 @@ export default function App() {
         ) : (
           <ProductPage
             activeView={activeView}
+            draftBriefId={selectedDraftBriefId}
             importSession={importSession}
             onDraft={handleDraftFromSignal}
             onImportSave={handleImportSave}
             onImportSessionReady={setImportSession}
+            onSaveBrief={workspace.saveDraftBrief}
+            onSaveReview={workspace.saveReviewResult}
             onViewChange={handleViewChange}
             savedRoutePostSignals={visiblePostSignals}
             selectedDraftSignal={selectedDraftSignal}
