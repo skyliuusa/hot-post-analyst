@@ -783,7 +783,7 @@ export default function App() {
     : undefined;
 
   useEffect(() => {
-    if (activeView !== 'draft') return;
+    if (activeView !== 'draft' && activeView !== 'review') return;
 
     const postId = getPostIdFromUrl();
     if (!postId) return;
@@ -796,7 +796,13 @@ export default function App() {
 
   function handleViewChange(view: ViewId) {
     setActiveView(view);
-    const nextUrl = view === 'landing' ? window.location.pathname : `${window.location.pathname}?view=${view}`;
+    const params = new URLSearchParams();
+    params.set('view', view);
+    if ((view === 'draft' || view === 'review') && selectedDraftSignal) {
+      params.set('post', selectedDraftSignal.id);
+    }
+
+    const nextUrl = view === 'landing' ? window.location.pathname : `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState(null, '', nextUrl);
   }
 
