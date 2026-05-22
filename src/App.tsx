@@ -1,6 +1,15 @@
 import { useMemo, useState } from 'react';
 
 type ViewId = 'landing' | 'today' | 'saved' | 'draft' | 'review';
+type SavedPost = {
+  id: string;
+  score: string;
+  title: string;
+  signal: string;
+  content: string;
+  draft: string;
+  palette: string;
+};
 
 const views: Array<{ id: ViewId; label: string }> = [
   { id: 'landing', label: '首页' },
@@ -17,9 +26,71 @@ const sidebarItems: Array<{ id: ViewId; label: string }> = [
   { id: 'review', label: '复盘' },
 ];
 
+const savedPosts: SavedPost[] = [
+  {
+    id: 'proof-list',
+    score: '86',
+    title: '带具体证据的清单封面',
+    signal: '封面先给证据，再给步骤，评论区集中追问执行细节。',
+    content: '核心不是清单本身，而是用一个可信证据让用户相信这套方法真的被跑过。',
+    draft: '把你的真实流程拆成 5 步，封面只写结果和证据，不写抽象价值。',
+    palette: 'from-[#e6f4ef] via-[#f7faf5] to-[#dfeee9]',
+  },
+  {
+    id: 'comment-loop',
+    score: '79',
+    title: '评论区反复问同一个问题',
+    signal: '同一个疑问出现多次，说明原帖没有解释清楚，适合补充型复刻。',
+    content: '从评论里提炼用户卡点，用“为什么你一直做不出来”作为开头。',
+    draft: '标题先写疑问，再用 3 个短段回答，最后给一个可执行检查项。',
+    palette: 'from-[#edf2ea] via-[#fbfcf8] to-[#e7efe3]',
+  },
+  {
+    id: 'contrast-cover',
+    score: '74',
+    title: '反差式封面标题组合',
+    signal: '标题制造反差，封面负责给场景，适合改成自己的行业版本。',
+    content: '不要复刻原话，保留“误区到正确动作”的结构就够了。',
+    draft: '写 3 组反差标题：错误动作、真实原因、替代流程。',
+    palette: 'from-[#f0f1e8] via-[#fbfaf4] to-[#e8eee6]',
+  },
+  {
+    id: 'cross-platform',
+    score: '68',
+    title: '同题多平台升温',
+    signal: '同一题材在不同平台出现，说明需求不是偶发流量。',
+    content: '先做轻量复刻，不需要完整长文，用短帖验证保存率。',
+    draft: '把原题变成“本周我会怎么做”的个人流程，先发短版本。',
+    palette: 'from-[#e7f1ef] via-[#f8faf7] to-[#eef2e8]',
+  },
+  {
+    id: 'before-after',
+    score: '82',
+    title: '前后对比封面',
+    signal: '用户能一眼看到变化，适合承载工具、流程、复盘类内容。',
+    content: '对比越具体，越容易被保存。避免“变好”这种模糊承诺。',
+    draft: '封面写前后差异，正文只解释造成变化的 3 个动作。',
+    palette: 'from-[#e5f3ec] via-[#fbfcfa] to-[#edf3e8]',
+  },
+  {
+    id: 'mistake-thread',
+    score: '71',
+    title: '错误清单型内容',
+    signal: '读者容易代入自己的问题，评论区会补充更多反例。',
+    content: '这类内容适合做成“少做什么”，不适合写成长篇教学。',
+    draft: '列出 5 个常见错误，每条只配一个修正动作。',
+    palette: 'from-[#eef4e7] via-[#fbfbf6] to-[#e6efeb]',
+  },
+];
+
 function getInitialView(): ViewId {
   const view = new URLSearchParams(window.location.search).get('view');
   return views.some((item) => item.id === view) ? (view as ViewId) : 'landing';
+}
+
+function getInitialDraft(): SavedPost {
+  const postId = new URLSearchParams(window.location.search).get('post');
+  return savedPosts.find((post) => post.id === postId) ?? savedPosts[0];
 }
 
 function IconButton({ label }: { label: string }) {
@@ -218,50 +289,116 @@ function TodayPage() {
   );
 }
 
-function SavedPage() {
-  const posts = [
-    ['86', '带具体证据的清单封面', '高收藏意图'],
-    ['79', '评论区反复问同一个问题', '强需求信号'],
-    ['74', '反差式封面标题组合', '适合改写'],
-    ['68', '同题多平台升温', '周四前验证'],
-  ];
-
+function ImageTile({ post, onClick }: { post: SavedPost; onClick: (post: SavedPost) => void }) {
   return (
-    <div className="grid gap-7 p-5 sm:p-7 lg:grid-cols-[0.62fr_1.38fr]">
-      <div>
-        <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-accent">只看可行动收藏</p>
-        <h1 className="mt-4 text-[48px] font-bold leading-[0.96] tracking-[-0.055em] text-ink">收藏不是素材库。</h1>
-        <p className="mt-5 max-w-[340px] text-base leading-7 text-muted">这里不展示所有内容，只展示最可能变成下一篇草稿的信号。</p>
+    <button
+      aria-label={`打开 ${post.title}`}
+      className="group aspect-[4/3] overflow-hidden rounded-[26px] border border-transparent bg-white p-2 text-left transition duration-300 ease-out hover:-translate-y-1 hover:scale-[1.018] hover:border-accent/45 hover:shadow-[0_22px_45px_-34px_rgba(24,24,27,0.55)] focus:outline-none focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/10 active:translate-y-0 active:scale-[0.99]"
+      onClick={() => onClick(post)}
+      type="button"
+    >
+      <div className={`relative h-full rounded-[22px] border border-line bg-gradient-to-br ${post.palette}`}>
+        <div className="absolute left-4 top-4 rounded-full bg-white/75 px-3 py-1.5 text-xs font-bold text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+          {post.score}
+        </div>
+        <div className="absolute bottom-4 left-4 right-4 h-14 rounded-2xl bg-white/62 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition group-hover:bg-white/78" />
       </div>
+    </button>
+  );
+}
 
-      <div className="grid gap-3">
-        {posts.map(([score, title, tag]) => (
-          <article className="grid grid-cols-[56px_1fr_auto] items-center gap-4 rounded-3xl border border-line bg-[#fbfcfa] p-4" key={title}>
-            <div className="grid size-14 place-items-center rounded-2xl bg-accentSoft text-sm font-bold text-accent">{score}</div>
-            <div>
-              <p className="text-lg font-bold tracking-[-0.03em] text-ink">{title}</p>
-              <p className="mt-1 text-sm text-soft">{tag}</p>
-            </div>
-            <span className="hidden rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-muted sm:block">可复刻</span>
-          </article>
-        ))}
+function SavedDetailOverlay({
+  post,
+  onClose,
+  onDraft,
+}: {
+  post: SavedPost;
+  onClose: () => void;
+  onDraft: (post: SavedPost) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-20 grid place-items-center bg-ink/20 px-5 py-7 backdrop-blur-sm" role="dialog" aria-modal="true">
+      <div className="relative grid w-[min(1120px,calc(100vw-40px))] gap-0 overflow-hidden rounded-[34px] border border-white/40 bg-white shadow-[0_42px_90px_-52px_rgba(24,24,27,0.76)] md:grid-cols-[0.95fr_1fr_0.9fr]">
+        <button
+          aria-label="关闭"
+          className="absolute right-5 top-5 grid size-10 place-items-center rounded-full border border-line bg-white text-xl leading-none text-muted transition hover:text-ink active:translate-y-px"
+          onClick={onClose}
+          type="button"
+        >
+          ×
+        </button>
+
+        <div className="p-5 md:p-7">
+          <div className={`flex aspect-[4/5] flex-col justify-between rounded-[28px] border border-line bg-gradient-to-br p-6 ${post.palette}`}>
+            <span className="w-fit rounded-full bg-white/75 px-3 py-2 text-xs font-bold text-accent">评分 {post.score}</span>
+            <h2 className="max-w-[260px] text-[34px] font-bold leading-none tracking-[-0.055em] text-ink">{post.title}</h2>
+          </div>
+        </div>
+
+        <div className="border-y border-line p-6 md:border-x md:border-y-0 md:p-8">
+          <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-accent">内容拆解</p>
+          <h3 className="mt-5 text-[38px] font-bold leading-none tracking-[-0.055em] text-ink">为什么值得复刻</h3>
+          <p className="mt-6 text-base leading-7 text-muted">{post.signal}</p>
+          <div className="mt-8 rounded-3xl border border-line bg-[#fbfcfa] p-5">
+            <p className="text-xs font-bold uppercase tracking-[0.08em] text-soft">核心结构</p>
+            <p className="mt-3 text-lg font-bold leading-7 tracking-[-0.03em] text-ink">{post.content}</p>
+          </div>
+        </div>
+
+        <button
+          aria-label={`进入 ${post.title} 的起稿页`}
+          className="group flex flex-col justify-between bg-ink p-6 text-left text-white transition hover:bg-[#202024] active:scale-[0.995] md:p-8"
+          onClick={() => onDraft(post)}
+          type="button"
+        >
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.08em] text-white/45">草稿</p>
+            <h3 className="mt-5 text-[36px] font-bold leading-none tracking-[-0.055em]">先生成一版标题。</h3>
+            <p className="mt-6 text-base leading-7 text-white/70">{post.draft}</p>
+          </div>
+          <div className="mt-10 flex items-center justify-between border-t border-white/15 pt-5">
+            <span className="text-lg font-bold tracking-[-0.03em]">进入起稿页</span>
+            <span className="grid size-12 place-items-center rounded-full bg-white text-2xl text-ink transition group-hover:translate-x-1">&gt;</span>
+          </div>
+        </button>
       </div>
     </div>
   );
 }
 
-function DraftPage() {
+function SavedPage({ onDraft }: { onDraft: (post: SavedPost) => void }) {
+  const detailFromQuery = new URLSearchParams(window.location.search).get('detail');
+  const [selectedPost, setSelectedPost] = useState<SavedPost | null>(
+    detailFromQuery ? savedPosts.find((post) => post.id === detailFromQuery) ?? null : null,
+  );
+
+  return (
+    <>
+      <div className="p-5 sm:p-7">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+          {savedPosts.map((post) => (
+            <ImageTile key={post.id} post={post} onClick={setSelectedPost} />
+          ))}
+        </div>
+      </div>
+      {selectedPost ? <SavedDetailOverlay onClose={() => setSelectedPost(null)} onDraft={onDraft} post={selectedPost} /> : null}
+    </>
+  );
+}
+
+function DraftPage({ post = savedPosts[0] }: { post?: SavedPost }) {
   return (
     <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[0.86fr_1.14fr]">
       <div className="rounded-[28px] border border-line bg-[#fbfcfa] p-6">
         <p className="text-xs font-bold uppercase tracking-[0.08em] text-soft">原始热帖</p>
-        <div className="mt-8 h-40 rounded-[24px] border border-line bg-accentSoft/70" />
-        <h2 className="mt-8 max-w-[280px] text-4xl font-bold leading-none tracking-[-0.055em] text-ink">带具体证据的清单封面</h2>
+        <div className={`mt-8 h-40 rounded-[24px] border border-line bg-gradient-to-br ${post.palette}`} />
+        <h2 className="mt-8 max-w-[280px] text-4xl font-bold leading-none tracking-[-0.055em] text-ink">{post.title}</h2>
       </div>
 
       <div>
         <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-accent">从拆解到草稿</p>
         <h1 className="mt-4 text-[48px] font-bold leading-[0.96] tracking-[-0.055em] text-ink">先写标题，不写全文。</h1>
+        <p className="mt-5 max-w-[520px] text-base leading-7 text-muted">{post.draft}</p>
         <div className="mt-8 grid gap-3">
           {['3 个标题版本', '1 个封面承诺', '1 条开头结构'].map((item, index) => (
             <div className="flex items-center justify-between rounded-3xl border border-line bg-white p-5" key={item}>
@@ -304,13 +441,23 @@ function ReviewPage() {
   );
 }
 
-function ProductPage({ activeView, onViewChange }: { activeView: Exclude<ViewId, 'landing'>; onViewChange: (view: ViewId) => void }) {
+function ProductPage({
+  activeView,
+  onViewChange,
+  selectedDraft,
+  onDraft,
+}: {
+  activeView: Exclude<ViewId, 'landing'>;
+  onViewChange: (view: ViewId) => void;
+  selectedDraft?: SavedPost;
+  onDraft: (post: SavedPost) => void;
+}) {
   const content = useMemo(() => {
-    if (activeView === 'saved') return <SavedPage />;
-    if (activeView === 'draft') return <DraftPage />;
+    if (activeView === 'saved') return <SavedPage onDraft={onDraft} />;
+    if (activeView === 'draft') return <DraftPage post={selectedDraft} />;
     if (activeView === 'review') return <ReviewPage />;
     return <TodayPage />;
-  }, [activeView]);
+  }, [activeView, onDraft, selectedDraft]);
 
   return (
     <section className="py-8">
@@ -323,6 +470,7 @@ function ProductPage({ activeView, onViewChange }: { activeView: Exclude<ViewId,
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>(getInitialView);
+  const [selectedDraft, setSelectedDraft] = useState<SavedPost>(getInitialDraft);
 
   function handleViewChange(view: ViewId) {
     setActiveView(view);
@@ -330,11 +478,21 @@ export default function App() {
     window.history.replaceState(null, '', nextUrl);
   }
 
+  function handleDraftFromSaved(post: SavedPost) {
+    setSelectedDraft(post);
+    setActiveView('draft');
+    window.history.replaceState(null, '', `${window.location.pathname}?view=draft&post=${post.id}`);
+  }
+
   return (
     <main className="min-h-[100dvh] bg-canvas">
       <div className="mx-auto grid min-h-[100dvh] w-[min(1200px,calc(100vw-36px))] grid-rows-[68px_1fr]">
         <TopNav activeView={activeView} onViewChange={handleViewChange} />
-        {activeView === 'landing' ? <LandingPage /> : <ProductPage activeView={activeView} onViewChange={handleViewChange} />}
+        {activeView === 'landing' ? (
+          <LandingPage />
+        ) : (
+          <ProductPage activeView={activeView} onDraft={handleDraftFromSaved} onViewChange={handleViewChange} selectedDraft={selectedDraft} />
+        )}
       </div>
     </main>
   );
