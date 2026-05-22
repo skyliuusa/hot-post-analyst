@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DraftBrief, PostSignal, ReviewResult } from '../domain/types';
 import { readJson, writeJson } from '../services/storage';
 
@@ -32,19 +32,39 @@ function replaceById<T extends { id: string }>(items: T[], nextItem: T) {
   return items.map((item, index) => (index === itemIndex ? nextItem : item));
 }
 
+function normalizeWorkspace(value: unknown): WorkspaceData {
+  if (!value || typeof value !== 'object') {
+    return emptyWorkspace;
+  }
+
+  const candidate = value as Partial<WorkspaceData>;
+
+  return {
+    postSignals: Array.isArray(candidate.postSignals) ? candidate.postSignals : [],
+    draftBriefs: Array.isArray(candidate.draftBriefs) ? candidate.draftBriefs : [],
+    reviewResults: Array.isArray(candidate.reviewResults) ? candidate.reviewResults : [],
+  };
+}
+
 function readWorkspace() {
-  return readJson<WorkspaceData>(workspaceStorageKey, emptyWorkspace);
+  return normalizeWorkspace(readJson<unknown>(workspaceStorageKey, emptyWorkspace));
 }
 
 export function useWorkspaceStore(): WorkspaceStore {
   const [workspace, setWorkspace] = useState<WorkspaceData>(() => readWorkspace());
+  const didMount = useRef(false);
+
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      return;
+    }
+
+    writeJson(workspaceStorageKey, workspace);
+  }, [workspace]);
 
   const updateWorkspace = useCallback((buildNext: (current: WorkspaceData) => WorkspaceData) => {
-    setWorkspace((current) => {
-      const next = buildNext(current);
-      writeJson(workspaceStorageKey, next);
-      return next;
-    });
+    setWorkspace((current) => buildNext(current));
   }, []);
 
   const savePostSignal = useCallback(

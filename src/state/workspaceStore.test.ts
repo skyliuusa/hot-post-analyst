@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readJson } from '../services/storage';
 import type { DraftBrief, PostSignal, ReviewResult } from '../domain/types';
 import { useWorkspaceStore } from './workspaceStore';
@@ -100,6 +100,10 @@ describe('useWorkspaceStore', () => {
     localStorage.clear();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('persists saved post signals to localStorage and reloads them on rerender', () => {
     const signal = postSignal({ title: 'Saved signal title' });
     const { result, rerender } = renderHook(() => useWorkspaceStore());
@@ -130,6 +134,32 @@ describe('useWorkspaceStore', () => {
     expect(result.current.draftBriefs[0].coverPromise).toBe('Updated promise');
     expect(result.current.reviewResults).toHaveLength(1);
     expect(result.current.reviewResults[0].nextAction).toBe('Updated action');
+  });
+
+  it('normalizes malformed workspace JSON before saving', () => {
+    localStorage.setItem(storageKey, JSON.stringify({}));
+    const { result } = renderHook(() => useWorkspaceStore());
+
+    act(() => {
+      result.current.savePostSignal(postSignal({ title: 'Recovered signal' }));
+    });
+
+    expect(result.current.postSignals.map((item) => item.title)).toEqual(['Recovered signal']);
+    expect(result.current.draftBriefs).toEqual([]);
+    expect(result.current.reviewResults).toEqual([]);
+  });
+
+  it('keeps in-memory state when localStorage writes fail', () => {
+    vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+      throw new Error('Quota exceeded');
+    });
+    const { result } = renderHook(() => useWorkspaceStore());
+
+    act(() => {
+      result.current.savePostSignal(postSignal({ title: 'Unsynced signal' }));
+    });
+
+    expect(result.current.postSignals.map((item) => item.title)).toEqual(['Unsynced signal']);
   });
 });
 
