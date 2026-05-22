@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
+import type { ImportSession, PostSignal } from './domain/types';
+import { CorrectionWorkspace } from './features/import/CorrectionWorkspace';
+import { ImportEntry } from './features/import/ImportEntry';
+import { useWorkspaceStore } from './state/workspaceStore';
 
-type ViewId = 'landing' | 'today' | 'saved' | 'draft' | 'review';
+type ViewId = 'landing' | 'today' | 'import' | 'saved' | 'draft' | 'review';
 type SavedPost = {
   id: string;
   score: string;
@@ -18,6 +22,7 @@ type SavedMode = 'cover' | 'hook' | 'topic';
 const views: Array<{ id: ViewId; label: string }> = [
   { id: 'landing', label: '首页' },
   { id: 'today', label: '今日' },
+  { id: 'import', label: '导入' },
   { id: 'saved', label: '收藏' },
   { id: 'draft', label: '起稿' },
   { id: 'review', label: '复盘' },
@@ -25,6 +30,7 @@ const views: Array<{ id: ViewId; label: string }> = [
 
 const sidebarItems: Array<{ id: ViewId; label: string }> = [
   { id: 'today', label: '今日' },
+  { id: 'import', label: '导入' },
   { id: 'saved', label: '收藏' },
   { id: 'draft', label: '起稿' },
   { id: 'review', label: '复盘' },
@@ -641,18 +647,31 @@ function ProductPage({
   onViewChange,
   selectedDraft,
   onDraft,
+  importSession,
+  onImportSessionReady,
+  onImportSave,
 }: {
   activeView: Exclude<ViewId, 'landing'>;
   onViewChange: (view: ViewId) => void;
   selectedDraft?: SavedPost;
   onDraft: (post: SavedPost) => void;
+  importSession: ImportSession | null;
+  onImportSessionReady: (session: ImportSession) => void;
+  onImportSave: (postSignal: PostSignal) => void;
 }) {
   const content = useMemo(() => {
+    if (activeView === 'import') {
+      return importSession ? (
+        <CorrectionWorkspace initialSession={importSession} onSave={onImportSave} />
+      ) : (
+        <ImportEntry onSessionReady={onImportSessionReady} />
+      );
+    }
     if (activeView === 'saved') return <SavedPage onDraft={onDraft} />;
     if (activeView === 'draft') return <DraftPage post={selectedDraft} />;
     if (activeView === 'review') return <ReviewPage />;
     return <TodayPage />;
-  }, [activeView, onDraft, selectedDraft]);
+  }, [activeView, importSession, onDraft, onImportSave, onImportSessionReady, selectedDraft]);
 
   return (
     <section className="py-8">
@@ -666,6 +685,8 @@ function ProductPage({
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>(getInitialView);
   const [selectedDraft, setSelectedDraft] = useState<SavedPost>(getInitialDraft);
+  const [importSession, setImportSession] = useState<ImportSession | null>(null);
+  const { savePostSignal } = useWorkspaceStore();
 
   function handleViewChange(view: ViewId) {
     setActiveView(view);
@@ -679,6 +700,13 @@ export default function App() {
     window.history.replaceState(null, '', `${window.location.pathname}?view=draft&post=${post.id}`);
   }
 
+  function handleImportSave(postSignal: PostSignal) {
+    savePostSignal(postSignal);
+    setImportSession(null);
+    setActiveView('saved');
+    window.history.replaceState(null, '', `${window.location.pathname}?view=saved`);
+  }
+
   return (
     <main className="min-h-[100dvh] bg-canvas">
       <div className="mx-auto grid min-h-[100dvh] w-[min(1200px,calc(100vw-36px))] grid-rows-[68px_1fr]">
@@ -686,7 +714,15 @@ export default function App() {
         {activeView === 'landing' ? (
           <LandingPage />
         ) : (
-          <ProductPage activeView={activeView} onDraft={handleDraftFromSaved} onViewChange={handleViewChange} selectedDraft={selectedDraft} />
+          <ProductPage
+            activeView={activeView}
+            importSession={importSession}
+            onDraft={handleDraftFromSaved}
+            onImportSave={handleImportSave}
+            onImportSessionReady={setImportSession}
+            onViewChange={handleViewChange}
+            selectedDraft={selectedDraft}
+          />
         )}
       </div>
     </main>
