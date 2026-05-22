@@ -1,4 +1,14 @@
-import type { AssetType, Confidence, ExtractedFields, FieldConfidence, ImportedAsset, ImportSession, SourcePlatform, SourceType } from './types';
+import type {
+  AssetType,
+  Confidence,
+  CorrectedImport,
+  ExtractedFields,
+  FieldConfidence,
+  ImportedAsset,
+  ImportSession,
+  SourcePlatform,
+  SourceType,
+} from './types';
 
 type CreateImportSessionInput = {
   sourceType: SourceType;
@@ -19,14 +29,32 @@ function nowIso() {
 
 function detectPlatformFromUrl(url?: string): SourcePlatform {
   if (!url) return 'unknown';
-  if (url.includes('xiaohongshu.com')) return 'xiaohongshu';
-  if (url.includes('mp.weixin.qq.com')) return 'wechat';
-  if (url.includes('x.com') || url.includes('twitter.com')) return 'x';
+
+  let hostname: string;
+  try {
+    hostname = new URL(url).hostname.toLowerCase();
+  } catch {
+    return 'other';
+  }
+
+  if (isHostOrSubdomain(hostname, 'xiaohongshu.com')) return 'xiaohongshu';
+  if (isHostOrSubdomain(hostname, 'mp.weixin.qq.com')) return 'wechat';
+  if (isHostOrSubdomain(hostname, 'x.com') || isHostOrSubdomain(hostname, 'twitter.com')) return 'x';
   return 'other';
 }
 
 function setExtractedField<K extends keyof ExtractedFields>(fields: ExtractedFields, key: K, value: ExtractedFields[K]) {
   fields[key] = value;
+}
+
+function isHostOrSubdomain(hostname: string, expectedHost: string) {
+  return hostname === expectedHost || hostname.endsWith(`.${expectedHost}`);
+}
+
+function removeFieldConfidence(confidence: FieldConfidence, field: keyof ExtractedFields): FieldConfidence {
+  const next = { ...confidence };
+  delete next[field];
+  return next;
 }
 
 export function createImportSession(input: CreateImportSessionInput): ImportSession {
@@ -60,6 +88,7 @@ export function markUserEditedField<K extends keyof ExtractedFields>(session: Im
       ...session.extractedFields,
       [field]: value,
     },
+    fieldConfidence: removeFieldConfidence(session.fieldConfidence, field),
     userEditedFields: [...new Set([...session.userEditedFields, field])],
     updatedAt: nowIso(),
   };
@@ -67,6 +96,7 @@ export function markUserEditedField<K extends keyof ExtractedFields>(session: Im
 
 export function applyExtractedFields(session: ImportSession, fields: ExtractedFields, confidence: FieldConfidence): ImportSession {
   const nextFields = { ...session.extractedFields };
+  const nextConfidence = { ...session.fieldConfidence };
 
   for (const key of Object.keys(fields) as Array<keyof ExtractedFields>) {
     const value = fields[key];
@@ -75,14 +105,16 @@ export function applyExtractedFields(session: ImportSession, fields: ExtractedFi
     setExtractedField(nextFields, key, value);
   }
 
+  for (const key of Object.keys(confidence) as Array<keyof ExtractedFields>) {
+    if (session.userEditedFields.includes(key)) continue;
+    nextConfidence[key] = confidence[key];
+  }
+
   return {
     ...session,
     status: 'needsReview',
     extractedFields: nextFields,
-    fieldConfidence: {
-      ...session.fieldConfidence,
-      ...confidence,
-    },
+    fieldConfidence: nextConfidence,
     updatedAt: nowIso(),
   };
 }
@@ -116,4 +148,27 @@ export function validateCorrection(session: ImportSession): string[] {
   if (!hasSourceBody) errors.push('请至少保留链接、图片或正文摘要中的一种。');
 
   return errors;
+}
+
+export function buildCorrectedImport(session: ImportSession): CorrectedImport {
+  const errors = validateCorrection(session);
+  if (errors.length > 0) {
+    throw new Error(errors.join('\n'));
+  }
+
+  const fields = session.extractedFields;
+  const hookLines = fields.hookLines?.filter((line) => line.trim()) ?? [];
+  const title = fields.title?.trim() || hookLines[0];
+  const safeHookLines = hookLines.length > 0 ? hookLines : [title];
+
+  return {
+    ...fields,
+    sourcePlatform: fields.sourcePlatform ?? session.sourcePlatform,
+    sourceUrl: fields.sourceUrl ?? session.sourceUrl,
+    title,
+    hookLines: safeHookLines,
+    topic: fields.topic?.trim() || '待确认选题',
+    tags: fields.tags ?? [],
+    metrics: fields.metrics ?? {},
+  };
 }
