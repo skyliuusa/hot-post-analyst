@@ -116,24 +116,35 @@ describe('useWorkspaceStore', () => {
     expect(result.current.postSignals.map((item) => item.title)).toContain('Saved signal title');
   });
 
-  it('replaces existing entities with the same id when saving', () => {
+  it('orders saved entities newest-first and moves replacements to the front', () => {
     const { result } = renderHook(() => useWorkspaceStore());
 
     act(() => {
-      result.current.savePostSignal(postSignal({ id: 'post-1', title: 'Original title' }));
-      result.current.savePostSignal(postSignal({ id: 'post-1', title: 'Updated title' }));
-      result.current.saveDraftBrief(draftBrief({ id: 'brief-1', coverPromise: 'Original promise' }));
-      result.current.saveDraftBrief(draftBrief({ id: 'brief-1', coverPromise: 'Updated promise' }));
-      result.current.saveReviewResult(reviewResult({ id: 'review-1', nextAction: 'Original action' }));
-      result.current.saveReviewResult(reviewResult({ id: 'review-1', nextAction: 'Updated action' }));
+      result.current.savePostSignal(postSignal({ id: 'post-1', title: 'First post' }));
+      result.current.savePostSignal(postSignal({ id: 'post-2', title: 'Second post' }));
+      result.current.savePostSignal(postSignal({ id: 'post-3', title: 'Third post' }));
+      result.current.savePostSignal(postSignal({ id: 'post-2', title: 'Updated second post' }));
+      result.current.saveDraftBrief(draftBrief({ id: 'brief-1', coverPromise: 'First promise' }));
+      result.current.saveDraftBrief(draftBrief({ id: 'brief-2', coverPromise: 'Second promise' }));
+      result.current.saveDraftBrief(draftBrief({ id: 'brief-3', coverPromise: 'Third promise' }));
+      result.current.saveDraftBrief(draftBrief({ id: 'brief-2', coverPromise: 'Updated second promise' }));
+      result.current.saveReviewResult(reviewResult({ id: 'review-1', nextAction: 'First action' }));
+      result.current.saveReviewResult(reviewResult({ id: 'review-2', nextAction: 'Second action' }));
+      result.current.saveReviewResult(reviewResult({ id: 'review-3', nextAction: 'Third action' }));
+      result.current.saveReviewResult(reviewResult({ id: 'review-2', nextAction: 'Updated second action' }));
     });
 
-    expect(result.current.postSignals).toHaveLength(1);
-    expect(result.current.postSignals[0].title).toBe('Updated title');
-    expect(result.current.draftBriefs).toHaveLength(1);
-    expect(result.current.draftBriefs[0].coverPromise).toBe('Updated promise');
-    expect(result.current.reviewResults).toHaveLength(1);
-    expect(result.current.reviewResults[0].nextAction).toBe('Updated action');
+    expect(result.current.postSignals.map((item) => item.title)).toEqual(['Updated second post', 'Third post', 'First post']);
+    expect(result.current.draftBriefs.map((item) => item.coverPromise)).toEqual([
+      'Updated second promise',
+      'Third promise',
+      'First promise',
+    ]);
+    expect(result.current.reviewResults.map((item) => item.nextAction)).toEqual([
+      'Updated second action',
+      'Third action',
+      'First action',
+    ]);
   });
 
   it('normalizes malformed workspace JSON before saving', () => {

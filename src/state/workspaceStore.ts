@@ -22,14 +22,8 @@ const emptyWorkspace: WorkspaceData = {
   reviewResults: [],
 };
 
-function replaceById<T extends { id: string }>(items: T[], nextItem: T) {
-  const itemIndex = items.findIndex((item) => item.id === nextItem.id);
-
-  if (itemIndex === -1) {
-    return [...items, nextItem];
-  }
-
-  return items.map((item, index) => (index === itemIndex ? nextItem : item));
+function saveNewestFirst<T extends { id: string }>(items: T[], nextItem: T) {
+  return [nextItem, ...items.filter((item) => item.id !== nextItem.id)];
 }
 
 function normalizeWorkspace(value: unknown): WorkspaceData {
@@ -71,7 +65,7 @@ export function useWorkspaceStore(): WorkspaceStore {
     (postSignal: PostSignal) => {
       updateWorkspace((current) => ({
         ...current,
-        postSignals: replaceById(current.postSignals, postSignal),
+        postSignals: saveNewestFirst(current.postSignals, postSignal),
       }));
     },
     [updateWorkspace],
@@ -81,7 +75,7 @@ export function useWorkspaceStore(): WorkspaceStore {
     (draftBrief: DraftBrief) => {
       updateWorkspace((current) => ({
         ...current,
-        draftBriefs: replaceById(current.draftBriefs, draftBrief),
+        draftBriefs: saveNewestFirst(current.draftBriefs, draftBrief),
       }));
     },
     [updateWorkspace],
@@ -91,7 +85,7 @@ export function useWorkspaceStore(): WorkspaceStore {
     (reviewResult: ReviewResult) => {
       updateWorkspace((current) => ({
         ...current,
-        reviewResults: replaceById(current.reviewResults, reviewResult),
+        reviewResults: saveNewestFirst(current.reviewResults, reviewResult),
       }));
     },
     [updateWorkspace],
