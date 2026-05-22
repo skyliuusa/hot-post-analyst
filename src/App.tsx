@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { ImportSession, PostSignal } from './domain/types';
 import { CorrectionWorkspace } from './features/import/CorrectionWorkspace';
 import { ImportEntry } from './features/import/ImportEntry';
+import { SavedWorkspace } from './features/saved/SavedWorkspace';
 import { useWorkspaceStore } from './state/workspaceStore';
 
 type ViewId = 'landing' | 'today' | 'import' | 'saved' | 'draft' | 'review';
@@ -117,24 +118,47 @@ const importedPalettes = [
   'from-[#f0f1e8] via-[#fbfaf4] to-[#e8eee6]',
 ];
 
-function mapPostSignalsToSavedPosts(signals: PostSignal[]): SavedPost[] {
-  const topicCounts = signals.reduce<Record<string, number>>((counts, signal) => {
-    counts[signal.topic] = (counts[signal.topic] ?? 0) + 1;
-    return counts;
-  }, {});
+function demoPostSignalFromSavedPost(post: SavedPost, index: number): PostSignal {
+  const createdAt = '2026-05-22T00:00:00.000Z';
 
-  return signals.map((signal, index) => ({
+  return {
+    id: post.id,
+    sourcePlatform: 'xiaohongshu',
+    title: post.title,
+    hookLines: post.hookLines,
+    bodySummary: post.content,
+    commentSummary: post.signal,
+    topic: post.topic,
+    tags: [],
+    metrics: { saves: post.topicCount * 100 },
+    replicationScore: Number(post.score),
+    coverSignal: post.signal,
+    hookSignal: post.signal,
+    topicClusterId: `topic-demo-${index}`,
+    commentDemandSignal: post.signal,
+    recommendedNextAction: post.draft,
+    draftSeed: post.content,
+    status: 'saved',
+    createdAt,
+    updatedAt: createdAt,
+  };
+}
+
+const demoPostSignals = savedPosts.map(demoPostSignalFromSavedPost);
+
+function draftPostFromSignal(signal: PostSignal): SavedPost {
+  return {
     id: signal.id,
     score: String(signal.replicationScore),
     title: signal.title,
     hookLines: signal.hookLines,
     topic: signal.topic,
-    topicCount: topicCounts[signal.topic] ?? 1,
+    topicCount: 1,
     signal: signal.hookSignal,
     content: signal.draftSeed,
     draft: signal.recommendedNextAction,
-    palette: importedPalettes[index % importedPalettes.length],
-  }));
+    palette: importedPalettes[0],
+  };
 }
 
 function getInitialView(): ViewId {
@@ -145,6 +169,11 @@ function getInitialView(): ViewId {
 function getInitialDraft(): SavedPost {
   const postId = new URLSearchParams(window.location.search).get('post');
   return savedPosts.find((post) => post.id === postId) ?? savedPosts[0];
+}
+
+function getInitialDraftSignal(): PostSignal | undefined {
+  const postId = new URLSearchParams(window.location.search).get('post');
+  return demoPostSignals.find((signal) => signal.id === postId);
 }
 
 function IconButton({ label }: { label: string }) {
@@ -613,7 +642,9 @@ function SavedPage({ onDraft, posts }: { onDraft: (post: SavedPost) => void; pos
   );
 }
 
-function DraftPage({ post = savedPosts[0] }: { post?: SavedPost }) {
+function DraftPage({ signal }: { signal?: PostSignal }) {
+  const post = signal ? draftPostFromSignal(signal) : getInitialDraft();
+
   return (
     <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[0.86fr_1.14fr]">
       <div className="rounded-[28px] border border-line bg-[#fbfcfa] p-6">
@@ -671,21 +702,21 @@ function ReviewPage() {
 function ProductPage({
   activeView,
   onViewChange,
-  selectedDraft,
+  selectedDraftSignal,
   onDraft,
   importSession,
   onImportSessionReady,
   onImportSave,
-  savedRoutePosts,
+  savedRoutePostSignals,
 }: {
   activeView: Exclude<ViewId, 'landing'>;
   onViewChange: (view: ViewId) => void;
-  selectedDraft?: SavedPost;
-  onDraft: (post: SavedPost) => void;
+  selectedDraftSignal?: PostSignal;
+  onDraft: (signal: PostSignal) => void;
   importSession: ImportSession | null;
   onImportSessionReady: (session: ImportSession) => void;
   onImportSave: (postSignal: PostSignal) => void;
-  savedRoutePosts: SavedPost[];
+  savedRoutePostSignals: PostSignal[];
 }) {
   const content = useMemo(() => {
     if (activeView === 'import') {
@@ -695,11 +726,11 @@ function ProductPage({
         <ImportEntry onSessionReady={onImportSessionReady} />
       );
     }
-    if (activeView === 'saved') return <SavedPage onDraft={onDraft} posts={savedRoutePosts} />;
-    if (activeView === 'draft') return <DraftPage post={selectedDraft} />;
+    if (activeView === 'saved') return <SavedWorkspace postSignals={savedRoutePostSignals} onDraft={onDraft} />;
+    if (activeView === 'draft') return <DraftPage signal={selectedDraftSignal} />;
     if (activeView === 'review') return <ReviewPage />;
     return <TodayPage />;
-  }, [activeView, importSession, onDraft, onImportSave, onImportSessionReady, savedRoutePosts, selectedDraft]);
+  }, [activeView, importSession, onDraft, onImportSave, onImportSessionReady, savedRoutePostSignals, selectedDraftSignal]);
 
   return (
     <section className="py-8">
@@ -712,11 +743,10 @@ function ProductPage({
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>(getInitialView);
-  const [selectedDraft, setSelectedDraft] = useState<SavedPost>(getInitialDraft);
+  const [selectedDraftSignal, setSelectedDraftSignal] = useState<PostSignal | undefined>(getInitialDraftSignal);
   const [importSession, setImportSession] = useState<ImportSession | null>(null);
   const { postSignals, savePostSignal } = useWorkspaceStore();
-  const importedSavedPosts = useMemo(() => mapPostSignalsToSavedPosts(postSignals), [postSignals]);
-  const savedRoutePosts = importedSavedPosts.length > 0 ? importedSavedPosts : savedPosts;
+  const visiblePostSignals = postSignals.length > 0 ? postSignals : demoPostSignals;
 
   function handleViewChange(view: ViewId) {
     setActiveView(view);
@@ -724,10 +754,10 @@ export default function App() {
     window.history.replaceState(null, '', nextUrl);
   }
 
-  function handleDraftFromSaved(post: SavedPost) {
-    setSelectedDraft(post);
+  function handleDraftFromSignal(signal: PostSignal) {
+    setSelectedDraftSignal(signal);
     setActiveView('draft');
-    window.history.replaceState(null, '', `${window.location.pathname}?view=draft&post=${post.id}`);
+    window.history.replaceState(null, '', `${window.location.pathname}?view=draft&post=${signal.id}`);
   }
 
   function handleImportSave(postSignal: PostSignal) {
@@ -747,12 +777,12 @@ export default function App() {
           <ProductPage
             activeView={activeView}
             importSession={importSession}
-            onDraft={handleDraftFromSaved}
+            onDraft={handleDraftFromSignal}
             onImportSave={handleImportSave}
             onImportSessionReady={setImportSession}
             onViewChange={handleViewChange}
-            savedRoutePosts={savedRoutePosts}
-            selectedDraft={selectedDraft}
+            savedRoutePostSignals={visiblePostSignals}
+            selectedDraftSignal={selectedDraftSignal}
           />
         )}
       </div>
