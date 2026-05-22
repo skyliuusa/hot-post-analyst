@@ -8,6 +8,10 @@ function slugTopic(topic: string) {
   return topic.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
+function topicClusterId(topic: string) {
+  return `topic-${slugTopic(topic)}`;
+}
+
 function scoreMetrics(input: CorrectedImport) {
   const saves = input.metrics?.saves ?? 0;
   const comments = input.metrics?.comments ?? 0;
@@ -24,6 +28,10 @@ function scoreMetrics(input: CorrectedImport) {
 export function analyzeCorrection(input: CorrectedImport, id: string): PostSignal {
   const createdAt = nowIso();
   const score = scoreMetrics(input);
+  const hookLines = [...input.hookLines];
+  const tags = [...(input.tags ?? [])];
+  const metrics = { ...(input.metrics ?? {}) };
+  const primaryHook = hookLines[0] ?? `标题「${input.title}」`;
 
   return {
     id,
@@ -31,19 +39,19 @@ export function analyzeCorrection(input: CorrectedImport, id: string): PostSigna
     sourceUrl: input.sourceUrl,
     title: input.title,
     coverAssetId: input.coverAssetId,
-    hookLines: input.hookLines,
+    hookLines,
     bodySummary: input.bodySummary,
     commentSummary: input.commentSummary,
     topic: input.topic,
-    tags: input.tags ?? [],
-    metrics: input.metrics ?? {},
+    tags,
+    metrics,
     replicationScore: score,
     coverSignal: input.coverAssetId ? '封面可作为首图结构参考。' : '封面缺失，起稿前需要补一张首图。',
-    hookSignal: `前三行围绕「${input.hookLines[0]}」建立进入理由。`,
-    topicClusterId: `topic-${slugTopic(input.topic)}`,
+    hookSignal: `前三行围绕「${primaryHook}」建立进入理由。`,
+    topicClusterId: topicClusterId(input.topic),
     commentDemandSignal: input.commentSummary ? `评论需求：${input.commentSummary}` : '评论需求未补充，建议保存前补充。',
     recommendedNextAction: '先写 3 个标题版本，再确定封面承诺。',
-    draftSeed: input.bodySummary ?? input.hookLines.join(' '),
+    draftSeed: input.bodySummary ?? hookLines.join(' '),
     status: 'saved',
     createdAt,
     updatedAt: createdAt,
@@ -52,17 +60,18 @@ export function analyzeCorrection(input: CorrectedImport, id: string): PostSigna
 
 export function groupTopicClusters(signals: PostSignal[]): TopicCluster[] {
   const grouped = signals.reduce<Record<string, PostSignal[]>>((result, signal) => {
-    result[signal.topic] = [...(result[signal.topic] ?? []), signal];
+    const key = topicClusterId(signal.topic);
+    result[key] = [...(result[key] ?? []), signal];
     return result;
   }, {});
 
-  return Object.entries(grouped).map(([topic, items]) => {
+  return Object.entries(grouped).map(([id, items]) => {
     const best = items.reduce((winner, item) => (item.replicationScore > winner.replicationScore ? item : winner), items[0]);
     const averageScore = Math.round(items.reduce((sum, item) => sum + item.replicationScore, 0) / items.length);
 
     return {
-      id: `topic-${slugTopic(topic)}`,
-      name: topic,
+      id,
+      name: items[0].topic,
       postSignalIds: items.map((item) => item.id),
       bestPostSignalId: best.id,
       postCount: items.length,

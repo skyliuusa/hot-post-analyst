@@ -27,6 +27,31 @@ describe('analyzeCorrection', () => {
     expect(signal.commentDemandSignal).toContain('追问');
     expect(signal.recommendedNextAction).toContain('标题');
   });
+
+  it('uses a readable fallback when hook lines are empty', () => {
+    const signal = analyzeCorrection({ ...baseImport, hookLines: [] }, 'post-empty-hook');
+
+    expect(signal.hookSignal).toContain('标题');
+    expect(signal.hookSignal).not.toContain('undefined');
+  });
+
+  it('copies mutable corrected import fields at the post signal boundary', () => {
+    const input: CorrectedImport = {
+      ...baseImport,
+      hookLines: [...baseImport.hookLines],
+      tags: [...(baseImport.tags ?? [])],
+      metrics: { ...baseImport.metrics },
+    };
+
+    const signal = analyzeCorrection(input, 'post-copy');
+    input.hookLines[0] = '后续编辑不应改写信号';
+    input.tags?.push('后续标签');
+    input.metrics!.saves = 1;
+
+    expect(signal.hookLines[0]).toBe('我把一套内容流程跑了 21 天。');
+    expect(signal.tags).toEqual(['清单', '流程']);
+    expect(signal.metrics.saves).toBe(860);
+  });
 });
 
 describe('groupTopicClusters', () => {
@@ -42,6 +67,20 @@ describe('groupTopicClusters', () => {
       postCount: 2,
       bestPostSignalId: 'post-1',
     });
+  });
+
+  it('merges topic variants that normalize to the same cluster id', () => {
+    const spacedTopic = analyzeCorrection({ ...baseImport, topic: '内容 流程' }, 'post-spaced');
+    const hyphenTopic = analyzeCorrection({ ...baseImport, topic: '内容-流程' }, 'post-hyphen');
+
+    const clusters = groupTopicClusters([spacedTopic, hyphenTopic]);
+
+    expect(clusters).toHaveLength(1);
+    expect(clusters[0]).toMatchObject({
+      id: 'topic-内容-流程',
+      postCount: 2,
+    });
+    expect(clusters[0].postSignalIds).toEqual(['post-spaced', 'post-hyphen']);
   });
 });
 
