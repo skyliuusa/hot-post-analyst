@@ -5,11 +5,15 @@ type SavedPost = {
   id: string;
   score: string;
   title: string;
+  hookLines: string[];
+  topic: string;
+  topicCount: number;
   signal: string;
   content: string;
   draft: string;
   palette: string;
 };
+type SavedMode = 'cover' | 'hook' | 'topic';
 
 const views: Array<{ id: ViewId; label: string }> = [
   { id: 'landing', label: '首页' },
@@ -31,6 +35,9 @@ const savedPosts: SavedPost[] = [
     id: 'proof-list',
     score: '86',
     title: '带具体证据的清单封面',
+    hookLines: ['我把一套内容流程跑了 21 天。', '真正有效的不是灵感，而是这 5 个检查点。', '最后一个直接决定保存率。'],
+    topic: '内容流程',
+    topicCount: 7,
     signal: '封面先给证据，再给步骤，评论区集中追问执行细节。',
     content: '核心不是清单本身，而是用一个可信证据让用户相信这套方法真的被跑过。',
     draft: '把你的真实流程拆成 5 步，封面只写结果和证据，不写抽象价值。',
@@ -40,6 +47,9 @@ const savedPosts: SavedPost[] = [
     id: 'comment-loop',
     score: '79',
     title: '评论区反复问同一个问题',
+    hookLines: ['为什么你明明收藏很多，还是写不出来？', '问题不在素材少，而在没有把评论需求抽出来。', '先看这三个高频追问。'],
+    topic: '创作卡点',
+    topicCount: 5,
     signal: '同一个疑问出现多次，说明原帖没有解释清楚，适合补充型复刻。',
     content: '从评论里提炼用户卡点，用“为什么你一直做不出来”作为开头。',
     draft: '标题先写疑问，再用 3 个短段回答，最后给一个可执行检查项。',
@@ -49,6 +59,9 @@ const savedPosts: SavedPost[] = [
     id: 'contrast-cover',
     score: '74',
     title: '反差式封面标题组合',
+    hookLines: ['大多数人把标题写反了。', '先给错误动作，再给替代流程。', '这个结构比单纯讲技巧更容易被点开。'],
+    topic: '标题结构',
+    topicCount: 4,
     signal: '标题制造反差，封面负责给场景，适合改成自己的行业版本。',
     content: '不要复刻原话，保留“误区到正确动作”的结构就够了。',
     draft: '写 3 组反差标题：错误动作、真实原因、替代流程。',
@@ -58,6 +71,9 @@ const savedPosts: SavedPost[] = [
     id: 'cross-platform',
     score: '68',
     title: '同题多平台升温',
+    hookLines: ['同一个问题这周在两个平台都热了。', '这说明它不是偶发流量。', '先做一条轻量版本验证。'],
+    topic: '趋势选题',
+    topicCount: 6,
     signal: '同一题材在不同平台出现，说明需求不是偶发流量。',
     content: '先做轻量复刻，不需要完整长文，用短帖验证保存率。',
     draft: '把原题变成“本周我会怎么做”的个人流程，先发短版本。',
@@ -67,6 +83,9 @@ const savedPosts: SavedPost[] = [
     id: 'before-after',
     score: '82',
     title: '前后对比封面',
+    hookLines: ['同样的内容，换一个对比方式就更容易保存。', '用户要看的不是过程，是变化。', '把前后差异写到第一屏。'],
+    topic: '封面表达',
+    topicCount: 8,
     signal: '用户能一眼看到变化，适合承载工具、流程、复盘类内容。',
     content: '对比越具体，越容易被保存。避免“变好”这种模糊承诺。',
     draft: '封面写前后差异，正文只解释造成变化的 3 个动作。',
@@ -76,6 +95,9 @@ const savedPosts: SavedPost[] = [
     id: 'mistake-thread',
     score: '71',
     title: '错误清单型内容',
+    hookLines: ['你以为是在做内容，其实是在重复 5 个错误。', '每一个错误都会降低转化。', '先改第 2 个。'],
+    topic: '避坑清单',
+    topicCount: 3,
     signal: '读者容易代入自己的问题，评论区会补充更多反例。',
     content: '这类内容适合做成“少做什么”，不适合写成长篇教学。',
     draft: '列出 5 个常见错误，每条只配一个修正动作。',
@@ -289,21 +311,163 @@ function TodayPage() {
   );
 }
 
-function ImageTile({ post, onClick }: { post: SavedPost; onClick: (post: SavedPost) => void }) {
+function CoverArtwork({ featured = false, index, post }: { featured?: boolean; index: number; post: SavedPost }) {
+  const accentBlocks = [
+    'right-5 top-20 h-20 w-24 rounded-[24px] bg-accent/12',
+    'right-5 top-20 h-28 w-14 rounded-full bg-ink/8',
+    'right-5 top-20 h-16 w-28 rounded-[18px] bg-white/48',
+    'right-5 top-20 h-24 w-20 rounded-[28px] bg-accent/10',
+    'right-5 top-20 h-16 w-16 rounded-full bg-white/58',
+    'right-5 top-20 h-24 w-24 rounded-[22px] border border-white/70',
+  ];
+
+  return (
+    <div className={`relative h-full overflow-hidden rounded-[24px] border border-line bg-gradient-to-br ${post.palette}`}>
+      <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-3">
+        <span className="rounded-full bg-white/82 px-3 py-1.5 text-xs font-bold text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+          {post.score}
+        </span>
+        <span className="max-w-[120px] truncate rounded-full bg-white/48 px-3 py-1.5 text-xs font-bold text-muted">{post.topic}</span>
+      </div>
+
+      <div className={`absolute ${accentBlocks[index % accentBlocks.length]}`} aria-hidden="true" />
+      <div className="absolute left-5 top-[42%] h-px w-16 bg-ink/12" aria-hidden="true" />
+      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white/62 to-white/0" aria-hidden="true" />
+
+      <div className="absolute bottom-5 left-5 right-5">
+        <h3
+          className={[
+            'max-w-[300px] font-bold leading-[0.98] tracking-[-0.055em] text-ink',
+            featured ? 'text-[36px] sm:text-[44px]' : 'text-[24px] sm:text-[28px]',
+          ].join(' ')}
+        >
+          {post.title}
+        </h3>
+      </div>
+    </div>
+  );
+}
+
+function ImageTile({
+  featured = false,
+  index,
+  post,
+  onClick,
+}: {
+  featured?: boolean;
+  index: number;
+  post: SavedPost;
+  onClick: (post: SavedPost) => void;
+}) {
   return (
     <button
       aria-label={`打开 ${post.title}`}
-      className="group aspect-[4/3] overflow-hidden rounded-[26px] border border-transparent bg-white p-2 text-left transition duration-300 ease-out hover:-translate-y-1 hover:scale-[1.018] hover:border-accent/45 hover:shadow-[0_22px_45px_-34px_rgba(24,24,27,0.55)] focus:outline-none focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/10 active:translate-y-0 active:scale-[0.99]"
+      className={[
+        'group overflow-hidden rounded-[28px] border border-transparent bg-white p-2 text-left transition duration-300 ease-out',
+        'hover:-translate-y-1 hover:scale-[1.018] hover:border-accent/45 hover:shadow-[0_22px_45px_-34px_rgba(24,24,27,0.55)]',
+        'focus:outline-none focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/10 active:translate-y-0 active:scale-[0.99]',
+        featured ? 'col-span-2 row-span-2 h-auto md:col-span-2' : 'h-[178px] md:h-auto',
+      ].join(' ')}
       onClick={() => onClick(post)}
       type="button"
     >
-      <div className={`relative h-full rounded-[22px] border border-line bg-gradient-to-br ${post.palette}`}>
-        <div className="absolute left-4 top-4 rounded-full bg-white/75 px-3 py-1.5 text-xs font-bold text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-          {post.score}
-        </div>
-        <div className="absolute bottom-4 left-4 right-4 h-14 rounded-2xl bg-white/62 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition group-hover:bg-white/78" />
+      <CoverArtwork featured={featured} index={index} post={post} />
+    </button>
+  );
+}
+
+function CoverWall({ onClick }: { onClick: (post: SavedPost) => void }) {
+  return (
+    <div className="grid auto-rows-[178px] grid-cols-2 gap-4 md:grid-cols-3 md:auto-rows-[190px]">
+      {savedPosts.map((post, index) => (
+        <ImageTile featured={index === 0} index={index} key={post.id} post={post} onClick={onClick} />
+      ))}
+    </div>
+  );
+}
+
+function ModeSwitch({ mode, onModeChange }: { mode: SavedMode; onModeChange: (mode: SavedMode) => void }) {
+  const modes: Array<{ id: SavedMode; label: string }> = [
+    { id: 'cover', label: '封面/首图' },
+    { id: 'hook', label: '钩子' },
+    { id: 'topic', label: '选题' },
+  ];
+
+  return (
+    <div className="flex w-fit rounded-full border border-line bg-white p-1">
+      {modes.map((item) => (
+        <button
+          aria-pressed={mode === item.id}
+          className={[
+            'min-h-9 rounded-full px-4 text-sm transition active:translate-y-px',
+            mode === item.id ? 'bg-ink font-semibold text-white' : 'text-muted hover:text-ink',
+          ].join(' ')}
+          key={item.id}
+          onClick={() => onModeChange(item.id)}
+          type="button"
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function HookCard({ post, onClick }: { post: SavedPost; onClick: (post: SavedPost) => void }) {
+  return (
+    <button
+      aria-label={`查看 ${post.title} 的钩子拆解`}
+      className="group rounded-[28px] border border-line bg-[#fbfcfa] p-5 text-left transition duration-300 ease-out hover:-translate-y-1 hover:border-accent/45 hover:bg-white hover:shadow-[0_22px_45px_-34px_rgba(24,24,27,0.55)] focus:outline-none focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/10 active:translate-y-0"
+      onClick={() => onClick(post)}
+      type="button"
+    >
+      <div className="flex items-center justify-between">
+        <span className="rounded-full bg-accentSoft px-3 py-1.5 text-xs font-bold text-accent">{post.score}</span>
+        <span className="text-xs font-bold uppercase tracking-[0.08em] text-soft">{post.topic}</span>
+      </div>
+      <h3 className="mt-5 text-2xl font-bold leading-tight tracking-[-0.04em] text-ink">{post.title}</h3>
+      <div className="mt-5 space-y-2 text-sm leading-6 text-muted">
+        {post.hookLines.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
       </div>
     </button>
+  );
+}
+
+function TopicCard({ topic, posts, onClick }: { topic: string; posts: SavedPost[]; onClick: (post: SavedPost) => void }) {
+  const bestPost = posts.reduce((best, item) => (Number(item.score) > Number(best.score) ? item : best), posts[0]);
+
+  return (
+    <button
+      aria-label={`查看 ${topic} 选题簇`}
+      className="rounded-[30px] border border-line bg-[#fbfcfa] p-6 text-left transition duration-300 ease-out hover:-translate-y-1 hover:border-accent/45 hover:bg-white hover:shadow-[0_22px_45px_-34px_rgba(24,24,27,0.55)] focus:outline-none focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/10 active:translate-y-0"
+      onClick={() => onClick(bestPost)}
+      type="button"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <h3 className="text-[34px] font-bold leading-none tracking-[-0.055em] text-ink">{topic}</h3>
+        <span className="rounded-full bg-accentSoft px-3 py-1.5 text-xs font-bold text-accent">{bestPost.topicCount} 条</span>
+      </div>
+      <p className="mt-8 text-sm font-bold uppercase tracking-[0.08em] text-soft">最高评分 {bestPost.score}</p>
+      <p className="mt-3 text-lg font-bold leading-7 tracking-[-0.03em] text-ink">{bestPost.title}</p>
+      <p className="mt-5 text-sm leading-6 text-muted">下一步：用这个选题，复刻最高分封面结构，改写前三行钩子。</p>
+    </button>
+  );
+}
+
+function TopicView({ onClick }: { onClick: (post: SavedPost) => void }) {
+  const groups = savedPosts.reduce<Record<string, SavedPost[]>>((result, post) => {
+    result[post.topic] = [...(result[post.topic] ?? []), post];
+    return result;
+  }, {});
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {Object.entries(groups).map(([topic, posts]) => (
+        <TopicCard key={topic} onClick={onClick} posts={posts} topic={topic} />
+      ))}
+    </div>
   );
 }
 
@@ -329,16 +493,19 @@ function SavedDetailOverlay({
         </button>
 
         <div className="p-5 md:p-7">
-          <div className={`flex aspect-[4/5] flex-col justify-between rounded-[28px] border border-line bg-gradient-to-br p-6 ${post.palette}`}>
-            <span className="w-fit rounded-full bg-white/75 px-3 py-2 text-xs font-bold text-accent">评分 {post.score}</span>
-            <h2 className="max-w-[260px] text-[34px] font-bold leading-none tracking-[-0.055em] text-ink">{post.title}</h2>
+          <div className="aspect-[4/5]">
+            <CoverArtwork featured index={0} post={post} />
           </div>
         </div>
 
         <div className="border-y border-line p-6 md:border-x md:border-y-0 md:p-8">
           <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-accent">内容拆解</p>
-          <h3 className="mt-5 text-[38px] font-bold leading-none tracking-[-0.055em] text-ink">为什么值得复刻</h3>
-          <p className="mt-6 text-base leading-7 text-muted">{post.signal}</p>
+          <h3 className="mt-5 text-[38px] font-bold leading-none tracking-[-0.055em] text-ink">{post.topic}</h3>
+          <div className="mt-6 space-y-2 text-base leading-7 text-muted">
+            {post.hookLines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
           <div className="mt-8 rounded-3xl border border-line bg-[#fbfcfa] p-5">
             <p className="text-xs font-bold uppercase tracking-[0.08em] text-soft">核心结构</p>
             <p className="mt-3 text-lg font-bold leading-7 tracking-[-0.03em] text-ink">{post.content}</p>
@@ -368,18 +535,46 @@ function SavedDetailOverlay({
 
 function SavedPage({ onDraft }: { onDraft: (post: SavedPost) => void }) {
   const detailFromQuery = new URLSearchParams(window.location.search).get('detail');
+  const modeFromQuery = new URLSearchParams(window.location.search).get('mode');
+  const [mode, setMode] = useState<SavedMode>(modeFromQuery === 'hook' || modeFromQuery === 'topic' ? modeFromQuery : 'cover');
   const [selectedPost, setSelectedPost] = useState<SavedPost | null>(
     detailFromQuery ? savedPosts.find((post) => post.id === detailFromQuery) ?? null : null,
   );
 
+  function handleModeChange(nextMode: SavedMode) {
+    setMode(nextMode);
+    const params = new URLSearchParams(window.location.search);
+    params.set('view', 'saved');
+    if (nextMode === 'cover') {
+      params.delete('mode');
+    } else {
+      params.set('mode', nextMode);
+    }
+    params.delete('detail');
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }
+
   return (
     <>
       <div className="p-5 sm:p-7">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-          {savedPosts.map((post) => (
-            <ImageTile key={post.id} post={post} onClick={setSelectedPost} />
-          ))}
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <ModeSwitch mode={mode} onModeChange={handleModeChange} />
+          <p className="hidden text-sm text-soft md:block">浏览时分开看，起稿时合并成一条创作指令。</p>
         </div>
+
+        {mode === 'cover' ? (
+          <CoverWall onClick={setSelectedPost} />
+        ) : null}
+
+        {mode === 'hook' ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {savedPosts.map((post) => (
+              <HookCard key={post.id} post={post} onClick={setSelectedPost} />
+            ))}
+          </div>
+        ) : null}
+
+        {mode === 'topic' ? <TopicView onClick={setSelectedPost} /> : null}
       </div>
       {selectedPost ? <SavedDetailOverlay onClose={() => setSelectedPost(null)} onDraft={onDraft} post={selectedPost} /> : null}
     </>
