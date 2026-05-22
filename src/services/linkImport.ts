@@ -48,19 +48,13 @@ export async function parseLink(url: string): Promise<ParsedLinkResult> {
     fields: {
       sourcePlatform,
       sourceUrl: url,
-      title: `${platformLabel}链接导入的热帖`,
-      hookLines: ['系统已识别来源链接。', '请补充原帖前三行。', '保存前确认封面和互动数据。'],
-      topic: '待确认选题',
-      bodySummary: '链接已保留，正文摘要需要在修正页确认。',
+      title: `${platformLabel}链接已识别，内容待人工提取`,
     },
     confidence: {
       sourcePlatform: 'high',
       sourceUrl: 'high',
       title: 'low',
-      hookLines: 'low',
-      topic: 'low',
-      bodySummary: 'low',
     },
-    errors: [],
+    errors: ['已识别链接来源，正文、标题和钩子需要人工补充后再保存。'],
   };
 }

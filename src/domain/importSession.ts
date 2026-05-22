@@ -140,7 +140,9 @@ export function addAssetToSession(session: ImportSession, input: AddAssetInput):
 export function validateCorrection(session: ImportSession): string[] {
   const errors: string[] = [];
   const fields = session.extractedFields;
-  const hasTitleOrHook = Boolean(fields.title?.trim()) || Boolean(fields.hookLines?.some((line) => line.trim()));
+  const hasAcceptedTitle = Boolean(fields.title?.trim()) && session.fieldConfidence.title !== 'low';
+  const hasAcceptedHook = Boolean(fields.hookLines?.some((line) => line.trim())) && session.fieldConfidence.hookLines !== 'low';
+  const hasTitleOrHook = hasAcceptedTitle || hasAcceptedHook;
   const hasSourceBody = Boolean(fields.sourceUrl?.trim()) || session.uploadedAssets.length > 0 || Boolean(fields.bodySummary?.trim());
 
   if (!fields.sourcePlatform || fields.sourcePlatform === 'unknown') errors.push('请选择平台。');

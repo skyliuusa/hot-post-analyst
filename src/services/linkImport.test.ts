@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { applyExtractedFields, createImportSession, validateCorrection } from '../domain/importSession';
 import { detectLinkPlatform, parseLink } from './linkImport';
 
 describe('detectLinkPlatform', () => {
@@ -22,6 +23,18 @@ describe('parseLink', () => {
     expect(result.sourcePlatform).toBe('xiaohongshu');
     expect(result.fields.title).toContain('小红书');
     expect(result.confidence.sourcePlatform).toBe('high');
+  });
+
+  it('does not make supported-link suggestions saveable without real content', async () => {
+    const session = createImportSession({ sourceType: 'link', sourceUrl: 'https://www.xiaohongshu.com/explore/abc' });
+    const parsed = await parseLink('https://www.xiaohongshu.com/explore/abc');
+    const merged = applyExtractedFields(session, parsed.fields, parsed.confidence);
+
+    expect(parsed.fields.hookLines).toBeUndefined();
+    expect(parsed.fields.topic).toBeUndefined();
+    expect(parsed.fields.bodySummary).toBeUndefined();
+    expect(parsed.errors[0]).toContain('人工补充');
+    expect(validateCorrection(merged)).toContain('请补充标题或前三行钩子。');
   });
 
   it('preserves unsupported links and returns a manual fallback error', async () => {

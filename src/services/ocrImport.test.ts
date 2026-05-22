@@ -22,4 +22,37 @@ describe('extractOcrSuggestions', () => {
       assetType: 'contentScreenshot',
     });
   });
+
+  it('does not infer 小红书 from generic engagement words alone', async () => {
+    const result = await extractOcrSuggestions({
+      fileName: 'cover.png',
+      text: '评论区都在追问执行清单\n赞同的人通常先收藏\n阅读完再复盘。',
+    });
+
+    expect(result.fields.sourcePlatform).toBe('unknown');
+    expect(result.fields.title).toBe('评论区都在追问执行清单');
+    expect(result.fields.hookLines?.[0]).toBe('赞同的人通常先收藏');
+  });
+
+  it('keeps real content lines that contain engagement words', async () => {
+    const result = await extractOcrSuggestions({
+      fileName: 'cover.png',
+      text: '小红书\n带具体证据的清单封面\n评论区都在追问执行清单\n阅读完再复盘。',
+    });
+
+    expect(result.fields.title).toBe('带具体证据的清单封面');
+    expect(result.fields.hookLines).toEqual(['评论区都在追问执行清单', '阅读完再复盘。']);
+  });
+
+  it('omits absent hook and topic confidence when OCR text has no content suggestions', async () => {
+    const result = await extractOcrSuggestions({
+      fileName: 'empty.png',
+      text: '',
+    });
+
+    expect(result.fields.hookLines).toBeUndefined();
+    expect(result.fields.topic).toBeUndefined();
+    expect(result.confidence.hookLines).toBeUndefined();
+    expect(result.confidence.topic).toBeUndefined();
+  });
 });
