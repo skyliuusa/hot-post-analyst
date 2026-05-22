@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 const baseUrl = process.env.DESIGN_URL ?? 'http://127.0.0.1:5173';
 const outputDir = resolve('design/landing/screenshots');
-const views = ['landing', 'today', 'saved', 'draft', 'review'];
+const views = ['landing', 'today', 'import', 'saved', 'draft', 'review'];
 const savedStates = ['saved-detail', 'saved-hook', 'saved-topic'];
 const detailPostId = 'proof-list';
 
