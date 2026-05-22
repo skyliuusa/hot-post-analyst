@@ -40,4 +40,13 @@ describe('SavedWorkspace', () => {
     await user.click(screen.getByRole('button', { name: '选题' }));
     expect(screen.getByText('内容流程')).toBeInTheDocument();
   });
+
+  it('names the detail dialog with the selected post title', async () => {
+    const user = userEvent.setup();
+    render(<SavedWorkspace postSignals={[signal]} onDraft={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: '打开 带具体证据的清单封面' }));
+
+    expect(screen.getByRole('dialog', { name: '带具体证据的清单封面' })).toBeInTheDocument();
+  });
 });

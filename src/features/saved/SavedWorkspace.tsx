@@ -163,8 +163,15 @@ function SavedDetailOverlay({
   onDraft: (signal: PostSignal) => void;
   signal: PostSignal;
 }) {
+  const titleId = `saved-detail-title-${signal.id}`;
+
   return (
-    <div className="fixed inset-0 z-20 grid place-items-center bg-ink/20 px-5 py-7 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div
+      aria-labelledby={titleId}
+      aria-modal="true"
+      className="fixed inset-0 z-20 grid place-items-center bg-ink/20 px-5 py-7 backdrop-blur-sm"
+      role="dialog"
+    >
       <div className="relative grid w-[min(1120px,calc(100vw-40px))] gap-0 overflow-hidden rounded-[34px] border border-white/40 bg-white shadow-[0_42px_90px_-52px_rgba(24,24,27,0.76)] md:grid-cols-[0.95fr_1fr_0.9fr]">
         <button
           aria-label="关闭"
@@ -176,6 +183,9 @@ function SavedDetailOverlay({
         </button>
 
         <div className="p-5 md:p-7">
+          <h2 className="sr-only" id={titleId}>
+            {signal.title}
+          </h2>
           <div className="aspect-[4/5]">
             <CoverArtwork featured index={0} signal={signal} />
           </div>

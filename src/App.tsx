@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ImportSession, PostSignal } from './domain/types';
 import { CorrectionWorkspace } from './features/import/CorrectionWorkspace';
 import { ImportEntry } from './features/import/ImportEntry';
@@ -174,6 +174,10 @@ function getInitialDraft(): SavedPost {
 function getInitialDraftSignal(): PostSignal | undefined {
   const postId = new URLSearchParams(window.location.search).get('post');
   return demoPostSignals.find((signal) => signal.id === postId);
+}
+
+function getPostIdFromUrl() {
+  return new URLSearchParams(window.location.search).get('post');
 }
 
 function IconButton({ label }: { label: string }) {
@@ -747,6 +751,18 @@ export default function App() {
   const [importSession, setImportSession] = useState<ImportSession | null>(null);
   const { postSignals, savePostSignal } = useWorkspaceStore();
   const visiblePostSignals = postSignals.length > 0 ? postSignals : demoPostSignals;
+
+  useEffect(() => {
+    if (activeView !== 'draft') return;
+
+    const postId = getPostIdFromUrl();
+    if (!postId) return;
+
+    const signalFromUrl = visiblePostSignals.find((signal) => signal.id === postId);
+    if (signalFromUrl && signalFromUrl.id !== selectedDraftSignal?.id) {
+      setSelectedDraftSignal(signalFromUrl);
+    }
+  }, [activeView, selectedDraftSignal?.id, visiblePostSignals]);
 
   function handleViewChange(view: ViewId) {
     setActiveView(view);
