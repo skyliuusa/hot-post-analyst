@@ -11,6 +11,13 @@ describe('ReviewWorkspace', () => {
     render(<ReviewWorkspace draftBriefId="brief-1" onSaveReview={onSaveReview} postSignalId="post-1" />);
 
     await user.type(screen.getByLabelText('最终标题'), '复盘标题');
+    await user.type(screen.getByLabelText('发布时间'), '2026-05-26T12:30');
+    await user.type(screen.getByLabelText('浏览'), '1000');
+    await user.type(screen.getByLabelText('点赞'), '120');
+    await user.type(screen.getByLabelText('收藏'), '80');
+    await user.type(screen.getByLabelText('评论'), '12');
+    await user.type(screen.getByLabelText('转发'), '6');
+    await user.selectOptions(screen.getByLabelText('复盘决策'), 'changeAngle');
     await user.type(screen.getByLabelText('复盘备注'), '这条值得继续验证。');
     await user.click(screen.getByRole('button', { name: '保存复盘' }));
 
@@ -18,8 +25,11 @@ describe('ReviewWorkspace', () => {
       expect.objectContaining({
         draftBriefId: 'brief-1',
         finalTitle: '复盘标题',
+        metrics: { views: 1000, likes: 120, saves: 80, comments: 12, reposts: 6 },
         notes: '这条值得继续验证。',
         postSignalId: 'post-1',
+        publishedAt: '2026-05-26T12:30:00.000Z',
+        decision: 'changeAngle',
       }),
     );
     expect(screen.getByText('已保存复盘')).toBeInTheDocument();

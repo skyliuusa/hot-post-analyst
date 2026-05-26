@@ -43,10 +43,44 @@ function isChromeLine(line: string) {
   return false;
 }
 
+function parseMetricValue(value: string) {
+  const normalized = value.replace(/,/g, '').trim();
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function extractMetrics(lines: string[]): ExtractedFields['metrics'] {
+  const metrics: NonNullable<ExtractedFields['metrics']> = {};
+
+  for (const line of lines) {
+    const compact = line.replace(/\s+/g, '');
+    const match = compact.match(/(赞|点赞|喜欢|收藏|评论|留言|转发|分享|浏览|阅读|观看|views?|likes?|saves?|comments?|reposts?)([:：]?)([\d,]+)/i);
+    if (!match) continue;
+
+    const value = parseMetricValue(match[3]);
+    if (value === undefined) continue;
+
+    const label = match[1].toLowerCase();
+    if (/赞|点赞|喜欢|likes?/.test(label)) metrics.likes = value;
+    if (/收藏|saves?/.test(label)) metrics.saves = value;
+    if (/评论|留言|comments?/.test(label)) metrics.comments = value;
+    if (/转发|分享|reposts?/.test(label)) metrics.reposts = value;
+    if (/浏览|阅读|观看|views?/.test(label)) metrics.views = value;
+  }
+
+  return Object.keys(metrics).length > 0 ? metrics : undefined;
+}
+
+function stripMetricLines(lines: string[]) {
+  return lines.filter((line) => !/(赞|点赞|喜欢|收藏|评论|留言|转发|分享|浏览|阅读|观看|views?|likes?|saves?|comments?|reposts?)\s*[:：]?\s*[\d,]+/i.test(line));
+}
+
 export async function extractOcrSuggestions(input: OcrInput): Promise<OcrSuggestionResult> {
   const lines = cleanLines(input.text);
   const sourcePlatform = detectSourcePlatform(input.text);
-  const contentLines = lines.filter((line) => !isChromeLine(line));
+  const assetType = detectAssetType(input.fileName, input.text);
+  const metrics = extractMetrics(lines);
+  const contentLines = stripMetricLines(lines.filter((line) => !isChromeLine(line)));
   const title = contentLines[0];
   const hookLines = contentLines.slice(1, 4);
   const fields: ExtractedFields = {
@@ -68,8 +102,21 @@ export async function extractOcrSuggestions(input: OcrInput): Promise<OcrSuggest
     confidence.hookLines = 'medium';
   }
 
+  if (assetType === 'commentScreenshot') {
+    const commentLines = contentLines.filter((line) => !/用户评论|全部评论|精选评论|评论区/.test(line));
+    if (commentLines.length > 0) {
+      fields.commentSummary = commentLines.slice(0, 3).join('；');
+      confidence.commentSummary = 'medium';
+    }
+  }
+
+  if (metrics) {
+    fields.metrics = metrics;
+    confidence.metrics = 'medium';
+  }
+
   return {
-    assetType: detectAssetType(input.fileName, input.text),
+    assetType,
     fields,
     confidence,
   };

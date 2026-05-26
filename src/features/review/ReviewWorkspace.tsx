@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { ReviewResult, SourcePlatform } from '../../domain/types';
+import type { EngagementMetrics, ReviewDecision, ReviewResult, SourcePlatform } from '../../domain/types';
 
 type ReviewWorkspaceProps = {
   postSignalId?: string;
@@ -14,13 +14,38 @@ const platforms: Array<{ id: SourcePlatform; label: string }> = [
   { id: 'other', label: '其他' },
 ];
 
+const decisions: Array<{ id: ReviewDecision; label: string }> = [
+  { id: 'continue', label: '继续复刻' },
+  { id: 'changeAngle', label: '换角度' },
+  { id: 'discard', label: '丢弃' },
+];
+
 function nowIso() {
   return new Date().toISOString();
 }
 
+function parseOptionalMetric(value: string) {
+  if (!value.trim()) return undefined;
+  const parsed = Number(value.replace(/,/g, ''));
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function metricValue(metrics: EngagementMetrics, key: keyof EngagementMetrics) {
+  return metrics[key] ?? '';
+}
+
+function publishedInputToIso(value: string) {
+  if (!value) return nowIso();
+  const withSeconds = value.length === 16 ? `${value}:00.000Z` : `${value}.000Z`;
+  return new Date(withSeconds).toISOString();
+}
+
 export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: ReviewWorkspaceProps) {
   const [publishedPlatform, setPublishedPlatform] = useState<SourcePlatform>('xiaohongshu');
+  const [publishedAt, setPublishedAt] = useState('');
   const [finalTitle, setFinalTitle] = useState('');
+  const [metrics, setMetrics] = useState<EngagementMetrics>({});
+  const [decision, setDecision] = useState<ReviewDecision>('continue');
   const [notes, setNotes] = useState('');
   const [nextAction, setNextAction] = useState('保留当前结构，继续做下一版标题和封面证据。');
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -35,11 +60,11 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
       draftBriefId,
       postSignalId,
       publishedPlatform,
-      publishedAt: createdAt,
+      publishedAt: publishedInputToIso(publishedAt),
       finalTitle: finalTitle.trim() || '未填写标题',
-      metrics: {},
+      metrics,
       notes: notes.trim(),
-      decision: 'continue',
+      decision,
       nextAction: nextAction.trim() || '继续复刻当前选题。',
       createdAt,
       updatedAt: createdAt,
@@ -49,6 +74,20 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
 
   function markUnsaved() {
     if (savedAt) setSavedAt(null);
+  }
+
+  function handleMetricChange(key: keyof EngagementMetrics, value: string) {
+    markUnsaved();
+    setMetrics((current) => {
+      const next = { ...current };
+      const parsed = parseOptionalMetric(value);
+      if (parsed === undefined) {
+        delete next[key];
+      } else {
+        next[key] = parsed;
+      }
+      return next;
+    });
   }
 
   return (
@@ -91,6 +130,58 @@ export function ReviewWorkspace({ draftBriefId, onSaveReview, postSignalId }: Re
             type="text"
             value={finalTitle}
           />
+        </label>
+
+        <label className="grid gap-2 text-sm font-bold text-ink">
+          发布时间
+          <input
+            className="min-h-12 rounded-[18px] border border-line bg-white px-4 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
+            onChange={(event) => {
+              markUnsaved();
+              setPublishedAt(event.target.value);
+            }}
+            type="datetime-local"
+            value={publishedAt}
+          />
+        </label>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {[
+            ['views', '浏览'],
+            ['likes', '点赞'],
+            ['saves', '收藏'],
+            ['comments', '评论'],
+            ['reposts', '转发'],
+          ].map(([key, label]) => (
+            <label className="grid min-w-0 gap-2 text-sm font-bold text-ink" key={key}>
+              {label}
+              <input
+                className="min-h-12 w-full min-w-0 rounded-[18px] border border-line bg-white px-3 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
+                min="0"
+                onChange={(event) => handleMetricChange(key as keyof EngagementMetrics, event.target.value)}
+                type="number"
+                value={metricValue(metrics, key as keyof EngagementMetrics)}
+              />
+            </label>
+          ))}
+        </div>
+
+        <label className="grid gap-2 text-sm font-bold text-ink">
+          复盘决策
+          <select
+            className="min-h-12 rounded-[18px] border border-line bg-white px-4 text-base font-medium text-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
+            onChange={(event) => {
+              markUnsaved();
+              setDecision(event.target.value as ReviewDecision);
+            }}
+            value={decision}
+          >
+            {decisions.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="grid gap-2 text-sm font-bold text-ink">

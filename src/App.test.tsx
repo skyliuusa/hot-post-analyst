@@ -92,4 +92,13 @@ describe('App routing', () => {
 
     expect(await screen.findByRole('button', { name: '保存复盘' })).toBeEnabled();
   });
+
+  it('shows saved-route empty state when no persisted post signals exist', () => {
+    window.history.replaceState(null, '', '/?view=saved');
+
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: '先导入一条热帖。' })).toBeInTheDocument();
+    expect(screen.queryByText('小红书爆款拆解')).not.toBeInTheDocument();
+  });
 });

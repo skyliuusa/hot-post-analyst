@@ -49,4 +49,16 @@ describe('SavedWorkspace', () => {
 
     expect(screen.getByRole('dialog', { name: '带具体证据的清单封面' })).toBeInTheDocument();
   });
+
+  it('focuses the close button and closes the detail dialog with Escape', async () => {
+    const user = userEvent.setup();
+    render(<SavedWorkspace postSignals={[signal]} onDraft={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: '打开 带具体证据的清单封面' }));
+
+    expect(screen.getByRole('button', { name: '关闭' })).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: '带具体证据的清单封面' })).not.toBeInTheDocument();
+  });
 });

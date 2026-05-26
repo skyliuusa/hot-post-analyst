@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { groupTopicClusters } from '../../domain/analysis';
 import type { PostSignal, TopicCluster } from '../../domain/types';
 
@@ -164,12 +164,45 @@ function SavedDetailOverlay({
   signal: PostSignal;
 }) {
   const titleId = `saved-detail-title-${signal.id}`;
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') ?? [],
+    ).filter((element) => !element.hasAttribute('disabled'));
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   return (
     <div
       aria-labelledby={titleId}
       aria-modal="true"
       className="fixed inset-0 z-20 grid place-items-center bg-ink/20 px-5 py-7 backdrop-blur-sm"
+      onKeyDown={handleKeyDown}
+      ref={dialogRef}
       role="dialog"
     >
       <div className="relative grid w-[min(1120px,calc(100vw-40px))] gap-0 overflow-hidden rounded-[34px] border border-white/40 bg-white shadow-[0_42px_90px_-52px_rgba(24,24,27,0.76)] md:grid-cols-[0.95fr_1fr_0.9fr]">
@@ -177,6 +210,7 @@ function SavedDetailOverlay({
           aria-label="关闭"
           className="absolute right-5 top-5 grid size-10 place-items-center rounded-full border border-line bg-white text-xl leading-none text-muted transition hover:text-ink active:translate-y-px"
           onClick={onClose}
+          ref={closeButtonRef}
           type="button"
         >
           x

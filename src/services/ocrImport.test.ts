@@ -15,12 +15,32 @@ describe('extractOcrSuggestions', () => {
   });
 
   it('detects comment and content screenshots from filename or OCR hints', async () => {
-    await expect(extractOcrSuggestions({ fileName: 'comments.png', text: '用户评论\n求流程' })).resolves.toMatchObject({
+    await expect(extractOcrSuggestions({ fileName: 'comments.png', text: '用户评论\n求流程\n评论 18\n点赞 320' })).resolves.toMatchObject({
       assetType: 'commentScreenshot',
+      fields: expect.objectContaining({
+        commentSummary: '求流程',
+        metrics: expect.objectContaining({ comments: 18, likes: 320 }),
+      }),
     });
     await expect(extractOcrSuggestions({ fileName: 'body.png', text: '正文内容\n步骤一' })).resolves.toMatchObject({
       assetType: 'contentScreenshot',
     });
+  });
+
+  it('extracts engagement metrics from common OCR labels', async () => {
+    const result = await extractOcrSuggestions({
+      fileName: 'content.png',
+      text: '小红书\n标题\n赞 1,234\n收藏 88\n评论 9\n转发 7\n浏览 12000',
+    });
+
+    expect(result.fields.metrics).toEqual({
+      likes: 1234,
+      saves: 88,
+      comments: 9,
+      reposts: 7,
+      views: 12000,
+    });
+    expect(result.confidence.metrics).toBe('medium');
   });
 
   it('does not infer 小红书 from generic engagement words alone', async () => {

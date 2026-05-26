@@ -42,19 +42,29 @@ export async function parseLink(url: string): Promise<ParsedLinkResult> {
   }
 
   const platformLabel = sourcePlatform === 'xiaohongshu' ? '小红书' : sourcePlatform === 'wechat' ? '公众号' : 'X';
+  const topic =
+    sourcePlatform === 'xiaohongshu' ? '爆款笔记拆解' : sourcePlatform === 'wechat' ? '公众号文章拆解' : '短帖观点拆解';
 
   return {
     sourcePlatform,
     fields: {
       sourcePlatform,
       sourceUrl: url,
-      title: `${platformLabel}链接已识别，内容待人工提取`,
+      title: `${platformLabel}链接自动导入`,
+      hookLines: [`已识别 ${platformLabel} 链接。`, '先保留原帖结构，再补充截图或正文。', '保存前确认标题、评论需求和关键指标。'],
+      bodySummary: `来自 ${platformLabel} 的链接导入：${url}`,
+      topic,
+      tags: [platformLabel, '待校对'],
     },
     confidence: {
       sourcePlatform: 'high',
       sourceUrl: 'high',
-      title: 'low',
+      title: 'medium',
+      hookLines: 'low',
+      bodySummary: 'low',
+      topic: 'low',
+      tags: 'low',
     },
-    errors: ['已识别链接来源，正文、标题和钩子需要人工补充后再保存。'],
+    errors: [],
   };
 }

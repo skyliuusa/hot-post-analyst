@@ -160,6 +160,23 @@ describe('useWorkspaceStore', () => {
     expect(result.current.reviewResults).toEqual([]);
   });
 
+  it('filters malformed persisted array entries during hydration', () => {
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        postSignals: [{}, postSignal({ id: 'post-valid', title: 'Valid signal' })],
+        draftBriefs: [{}, draftBrief({ id: 'brief-valid', coverPromise: 'Valid promise' })],
+        reviewResults: [{}, reviewResult({ id: 'review-valid', nextAction: 'Valid action' })],
+      }),
+    );
+
+    const { result } = renderHook(() => useWorkspaceStore());
+
+    expect(result.current.postSignals.map((item) => item.title)).toEqual(['Valid signal']);
+    expect(result.current.draftBriefs.map((item) => item.coverPromise)).toEqual(['Valid promise']);
+    expect(result.current.reviewResults.map((item) => item.nextAction)).toEqual(['Valid action']);
+  });
+
   it('keeps in-memory state when localStorage writes fail', () => {
     vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
       throw new Error('Quota exceeded');

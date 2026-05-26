@@ -174,8 +174,7 @@ function getInitialDraft(): SavedPost {
 }
 
 function getInitialDraftSignal(): PostSignal | undefined {
-  const postId = new URLSearchParams(window.location.search).get('post');
-  return demoPostSignals.find((signal) => signal.id === postId);
+  return undefined;
 }
 
 function getPostIdFromUrl() {
@@ -777,22 +776,29 @@ export default function App() {
   const [selectedDraftSignal, setSelectedDraftSignal] = useState<PostSignal | undefined>(getInitialDraftSignal);
   const [importSession, setImportSession] = useState<ImportSession | null>(null);
   const workspace = useWorkspaceStore();
-  const visiblePostSignals = workspace.postSignals.length > 0 ? workspace.postSignals : demoPostSignals;
   const selectedDraftBriefId = selectedDraftSignal
     ? workspace.draftBriefs.find((brief) => brief.postSignalId === selectedDraftSignal.id)?.id
     : undefined;
 
   useEffect(() => {
+    const selectedStillVisible = selectedDraftSignal
+      ? workspace.postSignals.some((signal) => signal.id === selectedDraftSignal.id)
+      : true;
+    if (!selectedStillVisible) {
+      setSelectedDraftSignal(undefined);
+      return;
+    }
+
     if (activeView !== 'draft' && activeView !== 'review') return;
 
     const postId = getPostIdFromUrl();
     if (!postId) return;
 
-    const signalFromUrl = visiblePostSignals.find((signal) => signal.id === postId);
+    const signalFromUrl = workspace.postSignals.find((signal) => signal.id === postId);
     if (signalFromUrl && signalFromUrl.id !== selectedDraftSignal?.id) {
       setSelectedDraftSignal(signalFromUrl);
     }
-  }, [activeView, selectedDraftSignal?.id, visiblePostSignals]);
+  }, [activeView, selectedDraftSignal, workspace.postSignals]);
 
   function handleViewChange(view: ViewId) {
     setActiveView(view);
@@ -836,7 +842,7 @@ export default function App() {
             onSaveBrief={workspace.saveDraftBrief}
             onSaveReview={workspace.saveReviewResult}
             onViewChange={handleViewChange}
-            savedRoutePostSignals={visiblePostSignals}
+            savedRoutePostSignals={workspace.postSignals}
             selectedDraftSignal={selectedDraftSignal}
           />
         )}

@@ -22,19 +22,38 @@ describe('parseLink', () => {
 
     expect(result.sourcePlatform).toBe('xiaohongshu');
     expect(result.fields.title).toContain('小红书');
+    expect(result.fields.hookLines?.length).toBeGreaterThan(0);
+    expect(result.fields.topic).toBeTruthy();
+    expect(result.fields.bodySummary).toContain('https://www.xiaohongshu.com/explore/abc');
+    expect(result.errors).toEqual([]);
     expect(result.confidence.sourcePlatform).toBe('high');
   });
 
-  it('does not make supported-link suggestions saveable without real content', async () => {
+  it('makes supported-link suggestions recoverably saveable after auto-fill', async () => {
     const session = createImportSession({ sourceType: 'link', sourceUrl: 'https://www.xiaohongshu.com/explore/abc' });
     const parsed = await parseLink('https://www.xiaohongshu.com/explore/abc');
     const merged = applyExtractedFields(session, parsed.fields, parsed.confidence);
 
-    expect(parsed.fields.hookLines).toBeUndefined();
-    expect(parsed.fields.topic).toBeUndefined();
-    expect(parsed.fields.bodySummary).toBeUndefined();
-    expect(parsed.errors[0]).toContain('人工补充');
-    expect(validateCorrection(merged)).toContain('请补充标题或前三行钩子。');
+    expect(validateCorrection(merged)).toEqual([]);
+  });
+
+  it('auto-fills platform-specific suggestions for WeChat and X links', async () => {
+    await expect(parseLink('https://mp.weixin.qq.com/s/demo')).resolves.toMatchObject({
+      sourcePlatform: 'wechat',
+      fields: expect.objectContaining({
+        title: expect.stringContaining('公众号'),
+        topic: expect.any(String),
+      }),
+      errors: [],
+    });
+    await expect(parseLink('https://x.com/user/status/1')).resolves.toMatchObject({
+      sourcePlatform: 'x',
+      fields: expect.objectContaining({
+        title: expect.stringContaining('X'),
+        hookLines: expect.any(Array),
+      }),
+      errors: [],
+    });
   });
 
   it('preserves unsupported links and returns a manual fallback error', async () => {
