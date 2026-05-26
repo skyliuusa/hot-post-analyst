@@ -1,14 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DraftBrief, PostSignal, ReviewResult } from '../domain/types';
 import { readJson, writeJson } from '../services/storage';
+import { loadWorkspaceFromApi, saveWorkspaceItemToApi, type WorkspaceData } from '../services/workspaceApi';
 
 const workspaceStorageKey = 'hot-post-analyst.workspace.v1';
-
-type WorkspaceData = {
-  postSignals: PostSignal[];
-  draftBriefs: DraftBrief[];
-  reviewResults: ReviewResult[];
-};
 
 type WorkspaceStore = WorkspaceData & {
   savePostSignal: (postSignal: PostSignal) => void;
@@ -105,9 +100,49 @@ function readWorkspace() {
   return normalizeWorkspace(readJson<unknown>(workspaceStorageKey, emptyWorkspace));
 }
 
+function isWorkspaceEmpty(workspace: WorkspaceData) {
+  return workspace.postSignals.length === 0 && workspace.draftBriefs.length === 0 && workspace.reviewResults.length === 0;
+}
+
+function syncWorkspaceToApi(workspace: WorkspaceData) {
+  for (const postSignal of workspace.postSignals) {
+    void saveWorkspaceItemToApi('postSignals', postSignal);
+  }
+  for (const draftBrief of workspace.draftBriefs) {
+    void saveWorkspaceItemToApi('draftBriefs', draftBrief);
+  }
+  for (const reviewResult of workspace.reviewResults) {
+    void saveWorkspaceItemToApi('reviewResults', reviewResult);
+  }
+}
+
 export function useWorkspaceStore(): WorkspaceStore {
   const [workspace, setWorkspace] = useState<WorkspaceData>(() => readWorkspace());
   const didMount = useRef(false);
+
+  useEffect(() => {
+    let didCancel = false;
+
+    async function hydrateFromApi() {
+      const apiWorkspace = await loadWorkspaceFromApi();
+      if (didCancel || apiWorkspace === null) return;
+
+      const normalizedApiWorkspace = normalizeWorkspace(apiWorkspace);
+      setWorkspace((current) => {
+        if (isWorkspaceEmpty(normalizedApiWorkspace) && !isWorkspaceEmpty(current)) {
+          syncWorkspaceToApi(current);
+          return current;
+        }
+        return normalizedApiWorkspace;
+      });
+    }
+
+    void hydrateFromApi();
+
+    return () => {
+      didCancel = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!didMount.current) {
@@ -128,6 +163,7 @@ export function useWorkspaceStore(): WorkspaceStore {
         ...current,
         postSignals: saveNewestFirst(current.postSignals, postSignal),
       }));
+      void saveWorkspaceItemToApi('postSignals', postSignal);
     },
     [updateWorkspace],
   );
@@ -138,6 +174,7 @@ export function useWorkspaceStore(): WorkspaceStore {
         ...current,
         draftBriefs: saveNewestFirst(current.draftBriefs, draftBrief),
       }));
+      void saveWorkspaceItemToApi('draftBriefs', draftBrief);
     },
     [updateWorkspace],
   );
@@ -148,6 +185,7 @@ export function useWorkspaceStore(): WorkspaceStore {
         ...current,
         reviewResults: saveNewestFirst(current.reviewResults, reviewResult),
       }));
+      void saveWorkspaceItemToApi('reviewResults', reviewResult);
     },
     [updateWorkspace],
   );

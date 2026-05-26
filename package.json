@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "design:capture": "node scripts/capture-design.mjs",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:server": "node --test server/*.test.mjs",
+    "serve:local": "node server/index.mjs"
   },
   "dependencies": {
     "react": "^19.2.3",

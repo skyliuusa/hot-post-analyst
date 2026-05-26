@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readJson } from '../services/storage';
 import type { DraftBrief, PostSignal, ReviewResult } from '../domain/types';
@@ -102,6 +102,7 @@ describe('useWorkspaceStore', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('persists saved post signals to localStorage and reloads them on rerender', () => {
@@ -189,7 +190,79 @@ describe('useWorkspaceStore', () => {
 
     expect(result.current.postSignals.map((item) => item.title)).toEqual(['Unsynced signal']);
   });
+
+  it('hydrates from the local persistence API when it is available', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          postSignals: [postSignal({ id: 'post-api', title: 'API signal' })],
+          draftBriefs: [draftBrief({ id: 'brief-api', coverPromise: 'API promise' })],
+          reviewResults: [reviewResult({ id: 'review-api', nextAction: 'API action' })],
+        }),
+      }),
+    );
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        postSignals: [postSignal({ id: 'post-local', title: 'Local signal' })],
+        draftBriefs: [],
+        reviewResults: [],
+      }),
+    );
+
+    const { result } = renderHook(() => useWorkspaceStore());
+
+    expect(result.current.postSignals.map((item) => item.title)).toEqual(['Local signal']);
+
+    await waitFor(() => {
+      expect(result.current.postSignals.map((item) => item.title)).toEqual(['API signal']);
+    });
+    expect(result.current.draftBriefs.map((item) => item.coverPromise)).toEqual(['API promise']);
+    expect(result.current.reviewResults.map((item) => item.nextAction)).toEqual(['API action']);
+  });
+
+  it('saves post signals to the local persistence API after optimistic local update', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => emptyWorkspaceResponse(),
+      })
+      .mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const signal = postSignal({ id: 'post-api-save', title: 'Persist through API' });
+    const { result } = renderHook(() => useWorkspaceStore());
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/workspace', expect.objectContaining({ method: 'GET' }));
+    });
+
+    act(() => {
+      result.current.savePostSignal(signal);
+    });
+
+    expect(result.current.postSignals.map((item) => item.title)).toEqual(['Persist through API']);
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/workspace/postSignals/post-api-save',
+        expect.objectContaining({
+          body: JSON.stringify(signal),
+          method: 'PUT',
+        }),
+      );
+    });
+  });
 });
+
+function emptyWorkspaceResponse() {
+  return {
+    postSignals: [],
+    draftBriefs: [],
+    reviewResults: [],
+  };
+}
 
 describe('readJson', () => {
   beforeEach(() => {
