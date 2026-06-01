@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { groupTopicClusters } from '../../domain/analysis';
 import type { PostSignal, TopicCluster } from '../../domain/types';
 
-type SavedMode = 'cover' | 'hook' | 'topic';
+export type SavedMode = 'cover' | 'hook' | 'topic';
 
 type SavedWorkspaceProps = {
+  initialMode?: SavedMode;
+  onModeChange?: (mode: SavedMode) => void;
   postSignals: PostSignal[];
   onDraft: (signal: PostSignal) => void;
 };
@@ -260,11 +262,20 @@ function SavedDetailOverlay({
   );
 }
 
-export function SavedWorkspace({ postSignals, onDraft }: SavedWorkspaceProps) {
-  const [mode, setMode] = useState<SavedMode>('cover');
+export function SavedWorkspace({ initialMode = 'cover', onModeChange, postSignals, onDraft }: SavedWorkspaceProps) {
+  const [mode, setMode] = useState<SavedMode>(initialMode);
   const [selected, setSelected] = useState<PostSignal | null>(null);
   const clusters = groupTopicClusters(postSignals);
   const signalsById = new Map(postSignals.map((signal) => [signal.id, signal]));
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  function handleModeChange(nextMode: SavedMode) {
+    setMode(nextMode);
+    onModeChange?.(nextMode);
+  }
 
   if (postSignals.length === 0) {
     return (
@@ -280,7 +291,7 @@ export function SavedWorkspace({ postSignals, onDraft }: SavedWorkspaceProps) {
     <>
       <div className="p-5 sm:p-7">
         <div className="mb-5 flex items-center justify-between gap-4">
-          <ModeSwitch mode={mode} onModeChange={setMode} />
+          <ModeSwitch mode={mode} onModeChange={handleModeChange} />
           <p className="hidden text-sm text-soft md:block">浏览时分开看，起稿时合并成一条创作指令。</p>
         </div>
 

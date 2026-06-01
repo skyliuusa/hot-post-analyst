@@ -4,7 +4,7 @@ import { DraftWorkspace } from './features/draft/DraftWorkspace';
 import { CorrectionWorkspace } from './features/import/CorrectionWorkspace';
 import { ImportEntry } from './features/import/ImportEntry';
 import { ReviewWorkspace } from './features/review/ReviewWorkspace';
-import { SavedWorkspace } from './features/saved/SavedWorkspace';
+import { SavedWorkspace, type SavedMode as WorkspaceSavedMode } from './features/saved/SavedWorkspace';
 import { useWorkspaceStore } from './state/workspaceStore';
 
 type ViewId = 'landing' | 'today' | 'import' | 'saved' | 'draft' | 'review';
@@ -168,6 +168,11 @@ function getInitialView(): ViewId {
   return views.some((item) => item.id === view) ? (view as ViewId) : 'landing';
 }
 
+function getSavedModeFromUrl(): WorkspaceSavedMode {
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  return mode === 'hook' || mode === 'topic' || mode === 'cover' ? mode : 'cover';
+}
+
 function getInitialDraft(): SavedPost {
   const postId = new URLSearchParams(window.location.search).get('post');
   return savedPosts.find((post) => post.id === postId) ?? savedPosts[0];
@@ -179,6 +184,21 @@ function getInitialDraftSignal(): PostSignal | undefined {
 
 function getPostIdFromUrl() {
   return new URLSearchParams(window.location.search).get('post');
+}
+
+function buildRouteUrl(view: ViewId, options: { postId?: string; savedMode?: WorkspaceSavedMode } = {}) {
+  if (view === 'landing') return window.location.pathname;
+
+  const params = new URLSearchParams();
+  params.set('view', view);
+  if ((view === 'draft' || view === 'review') && options.postId) {
+    params.set('post', options.postId);
+  }
+  if (view === 'saved' && options.savedMode && options.savedMode !== 'cover') {
+    params.set('mode', options.savedMode);
+  }
+
+  return `${window.location.pathname}?${params.toString()}`;
 }
 
 function IconButton({ label }: { label: string }) {
@@ -221,7 +241,11 @@ function TopNav({ activeView, onViewChange }: { activeView: ViewId; onViewChange
         <span className="hidden text-sm text-muted sm:inline">私有工作区</span>
         <IconButton label="搜索" />
         <IconButton label="设置" />
-        <button className="min-h-10 rounded-full bg-ink px-5 text-sm font-bold text-white transition active:translate-y-px" type="button">
+        <button
+          className="min-h-10 rounded-full bg-ink px-5 text-sm font-bold text-white transition active:translate-y-px"
+          onClick={() => onViewChange('import')}
+          type="button"
+        >
           开始使用
         </button>
       </div>
@@ -712,9 +736,11 @@ function ProductPage({
   onDraft,
   onSaveBrief,
   onSaveReview,
+  onSavedModeChange,
   importSession,
   onImportSessionReady,
   onImportSave,
+  savedMode,
   savedRoutePostSignals,
 }: {
   activeView: Exclude<ViewId, 'landing'>;
@@ -724,9 +750,11 @@ function ProductPage({
   onDraft: (signal: PostSignal) => void;
   onSaveBrief: (brief: DraftBrief) => void;
   onSaveReview: (review: ReviewResult) => void;
+  onSavedModeChange: (mode: WorkspaceSavedMode) => void;
   importSession: ImportSession | null;
   onImportSessionReady: (session: ImportSession) => void;
   onImportSave: (postSignal: PostSignal) => void;
+  savedMode: WorkspaceSavedMode;
   savedRoutePostSignals: PostSignal[];
 }) {
   const content = useMemo(() => {
@@ -737,7 +765,16 @@ function ProductPage({
         <ImportEntry onSessionReady={onImportSessionReady} />
       );
     }
-    if (activeView === 'saved') return <SavedWorkspace postSignals={savedRoutePostSignals} onDraft={onDraft} />;
+    if (activeView === 'saved') {
+      return (
+        <SavedWorkspace
+          initialMode={savedMode}
+          onDraft={onDraft}
+          onModeChange={onSavedModeChange}
+          postSignals={savedRoutePostSignals}
+        />
+      );
+    }
     if (activeView === 'draft') return <DraftWorkspace signal={selectedDraftSignal} onSaveBrief={onSaveBrief} />;
     if (activeView === 'review') {
       return (
@@ -758,6 +795,8 @@ function ProductPage({
     onImportSessionReady,
     onSaveBrief,
     onSaveReview,
+    onSavedModeChange,
+    savedMode,
     savedRoutePostSignals,
     selectedDraftSignal,
   ]);
@@ -773,6 +812,7 @@ function ProductPage({
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>(getInitialView);
+  const [savedMode, setSavedMode] = useState<WorkspaceSavedMode>(getSavedModeFromUrl);
   const [selectedDraftSignal, setSelectedDraftSignal] = useState<PostSignal | undefined>(getInitialDraftSignal);
   const [importSession, setImportSession] = useState<ImportSession | null>(null);
   const workspace = useWorkspaceStore();
@@ -800,29 +840,55 @@ export default function App() {
     }
   }, [activeView, selectedDraftSignal, workspace.postSignals]);
 
-  function handleViewChange(view: ViewId) {
-    setActiveView(view);
-    const params = new URLSearchParams();
-    params.set('view', view);
-    if ((view === 'draft' || view === 'review') && selectedDraftSignal) {
-      params.set('post', selectedDraftSignal.id);
+  useEffect(() => {
+    function handlePopState() {
+      setActiveView(getInitialView());
+      setSavedMode(getSavedModeFromUrl());
     }
 
-    const nextUrl = view === 'landing' ? window.location.pathname : `${window.location.pathname}?${params.toString()}`;
-    window.history.replaceState(null, '', nextUrl);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  function handleViewChange(view: ViewId) {
+    setActiveView(view);
+    if (view === 'saved') {
+      setSavedMode('cover');
+    }
+
+    window.history.pushState(
+      null,
+      '',
+      buildRouteUrl(view, {
+        postId: selectedDraftSignal?.id,
+        savedMode: view === 'saved' ? 'cover' : savedMode,
+      }),
+    );
   }
 
   function handleDraftFromSignal(signal: PostSignal) {
     setSelectedDraftSignal(signal);
     setActiveView('draft');
-    window.history.replaceState(null, '', `${window.location.pathname}?view=draft&post=${signal.id}`);
+    window.history.pushState(null, '', buildRouteUrl('draft', { postId: signal.id }));
+  }
+
+  function handleSaveBrief(brief: DraftBrief) {
+    workspace.saveDraftBrief(brief);
+    setActiveView('review');
+    window.history.pushState(null, '', buildRouteUrl('review', { postId: brief.postSignalId }));
   }
 
   function handleImportSave(postSignal: PostSignal) {
     workspace.savePostSignal(postSignal);
     setImportSession(null);
     setActiveView('saved');
-    window.history.replaceState(null, '', `${window.location.pathname}?view=saved`);
+    setSavedMode('cover');
+    window.history.pushState(null, '', buildRouteUrl('saved'));
+  }
+
+  function handleSavedModeChange(nextMode: WorkspaceSavedMode) {
+    setSavedMode(nextMode);
+    window.history.pushState(null, '', buildRouteUrl('saved', { savedMode: nextMode }));
   }
 
   return (
@@ -839,9 +905,11 @@ export default function App() {
             onDraft={handleDraftFromSignal}
             onImportSave={handleImportSave}
             onImportSessionReady={setImportSession}
-            onSaveBrief={workspace.saveDraftBrief}
+            onSaveBrief={handleSaveBrief}
             onSaveReview={workspace.saveReviewResult}
+            onSavedModeChange={handleSavedModeChange}
             onViewChange={handleViewChange}
+            savedMode={savedMode}
             savedRoutePostSignals={workspace.postSignals}
             selectedDraftSignal={selectedDraftSignal}
           />

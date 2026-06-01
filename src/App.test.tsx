@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import App from './App';
 import type { DraftBrief, PostSignal } from './domain/types';
@@ -100,5 +101,78 @@ describe('App routing', () => {
 
     expect(screen.getByRole('heading', { name: '先导入一条热帖。' })).toBeInTheDocument();
     expect(screen.queryByText('小红书爆款拆解')).not.toBeInTheDocument();
+  });
+
+  it('uses the primary CTA to enter the import route', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: '开始使用' }));
+
+    expect(window.location.search).toBe('?view=import');
+    expect(screen.getByRole('heading', { name: '把热帖变成可复刻信号。' })).toBeInTheDocument();
+  });
+
+  it('responds to browser history changes between feature routes', async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    const navigation = screen.getByRole('navigation', { name: '主导航' });
+    await user.click(within(navigation).getByRole('button', { name: '导入' }));
+    await user.click(within(navigation).getByRole('button', { name: '收藏' }));
+
+    act(() => {
+      window.history.pushState(null, '', '/?view=import');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    expect(window.location.search).toBe('?view=import');
+    expect(screen.getByRole('heading', { name: '把热帖变成可复刻信号。' })).toBeInTheDocument();
+
+    act(() => {
+      window.history.pushState(null, '', '/?view=saved');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    expect(window.location.search).toBe('?view=saved');
+    expect(screen.getByRole('heading', { name: '先导入一条热帖。' })).toBeInTheDocument();
+  });
+
+  it('restores the saved hook lens from the URL', async () => {
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        postSignals: [postSignal({ title: 'Hook route signal' })],
+        draftBriefs: [],
+        reviewResults: [],
+      }),
+    );
+    window.history.replaceState(null, '', '/?view=saved&mode=hook');
+
+    render(<App />);
+
+    expect(await screen.findByRole('button', { name: '查看 Hook route signal 的钩子拆解' })).toBeInTheDocument();
+  });
+
+  it('moves from a saved draft brief to the review route', async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        postSignals: [postSignal()],
+        draftBriefs: [],
+        reviewResults: [],
+      }),
+    );
+    window.history.replaceState(null, '', '/?view=draft&post=imported-post-1');
+
+    render(<App />);
+
+    await user.click(await screen.findByRole('button', { name: '保存草稿 brief' }));
+
+    expect(window.location.search).toBe('?view=review&post=imported-post-1');
+    expect(await screen.findByRole('button', { name: '保存复盘' })).toBeEnabled();
   });
 });
